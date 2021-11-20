@@ -44,9 +44,8 @@
     public function chooseCharacter()
     {
         self::setAjaxMode();     
-
-        $arg1 = self::getArg( "character", AT_alphanum, true );
-        $this->game->chooseCharacter($arg1);
+        $character = self::getArg( "character", AT_alphanum, true );
+        $this->game->chooseCharacter($character);
 
         self::ajaxResponse( );
     }

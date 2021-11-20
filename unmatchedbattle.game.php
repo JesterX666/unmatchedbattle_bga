@@ -191,19 +191,28 @@ class UnmatchedBattle extends Table
     */
 
 
-    function chooseCharacter( $character_id )
+    function chooseCharacter( $character )
     {
         self::checkAction('chooseCharacter');
-
+        
         $player_id = self::getActivePlayerId();
 
-        // Notify all players about the card played
-        self::notifyAllPlayers( "cardPlayed", clienttranslate( '${player_name} plays ${character_id}' ), array(
+        // Notify all players about the choosen character
+        self::notifyAllPlayers( "chosenCharacter", clienttranslate( '${player_name} choosed to play ${character}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
+            'character' => $character,
         ) );
+
+        // Next player
+        $this->gamestate->nextState( 'chooseCharacterNextPlayer' );
     }
 
+
+    function checkEveryoneChoosedCharacter()
+    {
+        debug.log( "checkEveryoneChoosedCharacter" );
+    }
     
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments

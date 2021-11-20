@@ -119,14 +119,14 @@ function (dojo, declare) {
             debugger;
             if (this.checkAction('chooseCharacter')) {
                 var items = this.availableCharacters.getSelectedItems();
-                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseCharacter.html', { 'character': items[0]['id'] }, this, 'onCharacterSelectResponse');                
+                var character = items[0]['id'];
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseCharacter.html', 
+                               { 'lock': true, 'character': character }, this, 'onCharacterSelectResponse');                
             }
         },
 
         onCharacterSelectResponse: function (data) {
-            debugger;
-            this.endAction('chooseCharacter');
-            this.availableCharacters.removeAllItems();
+            this.availableCharacters.removeAll();
             this.removeActionButtons();
         },
 
