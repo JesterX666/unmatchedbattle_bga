@@ -74,40 +74,40 @@ function (dojo, declare) {
         },
 
         setupChooseHero: function (gamedatas) {            
-            // List of available characters
-            this.availableCharacters = new ebg.stock();
-            this.availableCharacters.create( this, $('availableCharacters'), this.cardwidth, this.cardheight );
-            this.availableCharacters.setSelectionMode(1);
+            // List of available heros
+            this.availableHeros = new ebg.stock();
+            this.availableHeros.create( this, $('availableHeros'), this.cardwidth, this.cardheight );
+            this.availableHeros.setSelectionMode(1);
             
-            dojo.connect (this.availableCharacters, 'onChangeSelection', this, 'onChangeCharacterSelection');
+            dojo.connect (this.availableHeros, 'onChangeSelection', this, 'onChangeHeroSelection');
 
-            // Specify that there are 4 characters per row in the CSS sprite image
-            this.availableCharacters.image_items_per_row = 4;
+            // Specify that there are 4 heros per row in the CSS sprite image
+            this.availableHeros.image_items_per_row = 4;
             
             var type = 0;
-            // Adding all available characters to the stock, with their image
-            Object.values(gamedatas.availablecharacters).forEach(character => {
+            // Adding all available heros to the stock, with their image
+            Object.values(gamedatas.availableHeros).forEach(hero => {
                     // We find the card back image from the list of all cards
-                    var card = Object.values(gamedatas.cardtypes).find(card => card['deck'] == character['name'] && 
+                    var card = Object.values(gamedatas.cardtypes).find(card => card['deck'] == hero['name'] && 
                                                                                card['type'] == 'back');
                     
                     if (card) {
                         // We initialise the card item type to the stock
-                        this.availableCharacters.addItemType(type, 0, g_gamethemeurl + 'img/Cards/' + card['image']);
+                        this.availableHeros.addItemType(type, 0, g_gamethemeurl + 'img/Cards/' + card['image']);
 
                         // We add the card to the stock
-                        this.availableCharacters.addToStockWithId(type, character['name']);
+                        this.availableHeros.addToStockWithId(type, hero['name']);
                     }
 
                     type++;
             });        
         },
 
-        onChangeCharacterSelection: function (selection) {
-            var items = this.availableCharacters.getSelectedItems();
+        onChangeHeroSelection: function (selection) {
+            var items = this.availableHeros.getSelectedItems();
             if (items.length > 0) {
-                if (!document.getElementById('characterSelectionConfirm')) {
-                    this.addActionButton( 'characterSelectionConfirm', _('Confirm'), 'onCharacterSelect' ); 
+                if (!document.getElementById('heroSelectionConfirm')) {
+                    this.addActionButton( 'heroSelectionConfirm', _('Confirm'), 'onHeroSelect' ); 
                 }
             }
             else {
@@ -115,18 +115,18 @@ function (dojo, declare) {
             }            
         },       
 
-        onCharacterSelect: function () {
+        onHeroSelect: function () {
             debugger;
-            if (this.checkAction('chooseCharacter')) {
-                var items = this.availableCharacters.getSelectedItems();
-                var character = items[0]['id'];
-                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseCharacter.html', 
-                               { 'lock': true, 'character': character }, this, 'onCharacterSelectResponse');                
+            if (this.checkAction('chooseHero')) {
+                var items = this.availableHeros.getSelectedItems();
+                var hero = items[0]['id'];
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseHero.html', 
+                               { 'lock': true, 'hero': hero }, this, 'onHeroSelectResponse');                
             }
         },
 
-        onCharacterSelectResponse: function (data) {
-            this.availableCharacters.removeAll();
+        onHeroSelectResponse: function (data) {
+            this.availableHeros.removeAll();
             this.removeActionButtons();
         },
 
@@ -142,8 +142,8 @@ function (dojo, declare) {
             
             switch( stateName ) {
                 case "chooseHero":                
-                    // Show the character selection HTML block at this game state
-                    dojo.style( 'availableCharacters', 'display', 'block' );
+                    // Show the hero selection HTML block at this game state
+                    dojo.style( 'availableHeros', 'display', 'block' );
                     // Hide the main game HTML block at this game state
                     dojo.style( 'mainGame', 'display', 'none' );    
                     break;           
