@@ -226,6 +226,11 @@ class UnmatchedBattle extends Table
             $this->gamestate->nextState( 'chooseHero' );
         }
     }
+
+    function distributeCards()
+    {
+        self::debug("Distributing Cards");
+    }
     
 //////////////////////////////////////////////////////////////////////////////
 //////////// Game state arguments

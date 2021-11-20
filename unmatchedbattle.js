@@ -105,7 +105,7 @@ function (dojo, declare) {
 
         onChangeHeroSelection: function (selection) {
             var items = this.availableHeros.getSelectedItems();
-            if (items.length > 0) {
+            if ((items.length == 1) && this.isCurrentPlayerActive()) {
                 if (!document.getElementById('heroSelectionConfirm')) {
                     this.addActionButton( 'heroSelectionConfirm', _('Confirm'), 'onHeroSelect' ); 
                 }
