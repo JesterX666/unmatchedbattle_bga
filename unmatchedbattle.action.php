@@ -41,11 +41,11 @@
   	
   	// TODO: defines your action entry points there
 
-    public function chooseCharacter()
+    public function chooseHero()
     {
         self::setAjaxMode();     
-        $character = self::getArg( "character", AT_alphanum, true );
-        $this->game->chooseCharacter($character);
+        $hero = self::getArg( "hero", AT_alphanum, true );
+        $this->game->chooseHero($hero);
 
         self::ajaxResponse( );
     }

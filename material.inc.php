@@ -19,8 +19,22 @@
  *
  */
 
- // List of playable characters in the game
-$this->characters = array(
+ // List of boards
+
+ $this->boards = array(
+    1 => array(
+        'name' => 'Marmoreal',
+        'map' => 'Marmoreal.jpg'
+    ),
+    2 => array(
+        'name' => 'Sarpedon',
+        'map' => 'Sarpedon.jpg'
+    )
+    );
+
+
+ // List of playable heros
+$this->heros = array(
     1 => array(
         "name" => "Alice",
     ),
@@ -33,7 +47,7 @@ $this->characters = array(
     4 => array(
         "name" => "Sinbad",
     ),
-  );
+);
 
 // List of cards
 $this->cardtypes = array(
@@ -82,7 +96,7 @@ $this->cardtypes = array(
                 "deck" => "Sinbad",
                 "image" => "UM card back_Sinbad.jpg"
                 ),    
-              );
+);
 
 
 

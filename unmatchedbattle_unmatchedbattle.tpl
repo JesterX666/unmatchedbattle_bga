@@ -25,9 +25,9 @@
     Please REMOVE this comment before publishing your game on BGA
 -->
 
-<!-- BEGIN pickup character -->
-    <div id="availableCharacters"></div>
-<!-- END pickup character -->
+<!-- BEGIN pickup hero -->
+    <div id="availableHeros"></div>
+<!-- END pickup hero -->
 
 <!-- BEGIN main game -->
     <div id="mainGame">

@@ -30,6 +30,6 @@
 -- ) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;
 
 
--- Add a the character choice to the player table
-ALTER TABLE `player` ADD `character` VARCHAR(20);
+-- Add a the hero choice to the player table
+ALTER TABLE `player` ADD `hero` VARCHAR(20);
 

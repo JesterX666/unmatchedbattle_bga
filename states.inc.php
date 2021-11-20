@@ -68,16 +68,16 @@ $machinestates = array(
     		"description" => clienttranslate('${actplayer} must choose his hero'),
     		"descriptionmyturn" => clienttranslate('${you} must choose your hero'),
     		"type" => "activeplayer",
-    		"possibleactions" => array( "chooseCharacter" ),
-    		"transitions" => array( "chooseCharacterNextPlayer" => 3 )
+    		"possibleactions" => array( "chooseHero" ),
+    		"transitions" => array( "chooseHeroNextPlayer" => 3 )
     ),
 
     3 => array(
-        "name" => "chooseCharacterNextPlayer",
+        "name" => "chooseHeroNextPlayer",
         "description" => "",
         "type" => "game",
-        "action" => "checkEveryoneChoosedCharacter",
-        "transitions" => array( "chooseHero" => 2, "everyoneChoosedCharacter" => 4 )
+        "action" => "checkEveryoneChoosedHero",
+        "transitions" => array( "chooseHero" => 2, "everyoneChoosedHero" => 4 )
     ), 
     
 	4 => array(

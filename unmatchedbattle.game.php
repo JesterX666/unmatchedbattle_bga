@@ -118,8 +118,8 @@ class UnmatchedBattle extends Table
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
 
-        // Which characters are available at the start of the game
-        $result['availablecharacters'] = $this->getAvailableCharacters();
+        // Which heros are available at the start of the game
+        $result['availableHeros'] = $this->getAvailableHeros();
 
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
@@ -191,27 +191,40 @@ class UnmatchedBattle extends Table
     */
 
 
-    function chooseCharacter( $character )
+    function chooseHero( $hero )
     {
-        self::checkAction('chooseCharacter');
+        self::checkAction('chooseHero');
         
         $player_id = self::getActivePlayerId();
 
-        // Notify all players about the choosen character
-        self::notifyAllPlayers( "chosenCharacter", clienttranslate( '${player_name} choosed to play ${character}' ), array(
+        // Notify all players about the choosen hero
+        self::notifyAllPlayers( "chosenHero", clienttranslate( '${player_name} choosed to play ${hero}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'character' => $character,
+            'hero' => $hero,
         ) );
 
+        // Set the choosen hero in the database
+        $sql = "UPDATE player SET hero = '".$hero."' WHERE player_id = ".$player_id;
+        self::DbQuery( $sql );
+
         // Next player
-        $this->gamestate->nextState( 'chooseCharacterNextPlayer' );
+        $this->gamestate->nextState( 'chooseHeroNextPlayer' );
     }
 
 
-    function checkEveryoneChoosedCharacter()
+    function checkEveryoneChoosedHero()
     {
-        debug.log( "checkEveryoneChoosedCharacter" );
+        $sql = "SELECT player_id id FROM player WHERE hero is null";
+        $result['playersWithoutHero'] = self::getCollectionFromDb( $sql );
+
+        if (count($result['playersWithoutHero']) == 0) {
+            $this->gamestate->nextState( 'everyoneChoosedHero' );
+        }
+        else {
+            $this->activeNextPlayer();
+            $this->gamestate->nextState( 'chooseHero' );
+        }
     }
     
 //////////////////////////////////////////////////////////////////////////////
@@ -345,9 +358,9 @@ class UnmatchedBattle extends Table
 //
     }    
 
-    // Returns the list of available characters for choosing
-    protected function getAvailableCharacters()
+    // Returns the list of available heros for choosing
+    protected function getAvailableHeros()
     {
-        return $this->characters;
+        return $this->heros;
     }
 }
