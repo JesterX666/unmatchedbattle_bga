@@ -40,6 +40,9 @@ class UnmatchedBattle extends Table
             //    "my_second_game_variant" => 101,
             //      ...
         ) );        
+
+        $this->cards = self::getNew( "module.common.deck" );
+        $this->cards->init("cards");
 	}
 	
     protected function getGameName( )
@@ -201,6 +204,8 @@ class UnmatchedBattle extends Table
         $sql = "UPDATE player SET hero = '".$hero."' WHERE player_id = ".$player_id;
         self::DbQuery( $sql );
 
+        // Get the players object
+
         // Notify all players about the hero chosen and the remaining available heroes
         $availableHeros = $this->getAvailableHeros();
 
@@ -232,6 +237,35 @@ class UnmatchedBattle extends Table
     function distributeCards()
     {
         self::debug("Distributing Cards");
+
+        // Get all heroes
+        $sql = "SELECT hero FROM player" ;
+        $heroes = self::getCollectionFromDb( $sql );
+
+        // Create cards
+        $herosnames = array_column($heroes, 'hero');
+
+        // Loop on the players
+        foreach($herosnames as $hero_name)
+        {            
+            self::debug("Creating card for: ".$hero_name);
+
+            $cardsofhero = array_filter($this->cardtypes, function($obj) use ($hero_name) { return $obj['deck'] == $hero_name; && $obj['type'] == 'card'; });
+            
+            $cards = array();
+
+            // Loop on all cards of the hero
+            foreach($cardsofhero as $card)
+            {
+                self::debug("Card: ".$card['name']);
+                $cards[] = array('type' => $hero_name, 'type_arg' => $card['internal_id'], 'nbr' => $card['nbr']);
+            }
+
+            // Add the cards of the hero to his their deck
+            $this->cards->createCards( $cards, 'deck_'.$hero_name );
+        }
+
+        // Notify all players about the cards distribution
         $this->gamestate->nextState( 'placeHero' );
     }
     
