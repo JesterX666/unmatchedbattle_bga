@@ -218,9 +218,9 @@ class UnmatchedBattle extends Table
     function checkEveryoneChoosedHero()
     {
         $sql = "SELECT player_id id FROM player WHERE hero is null";
-        $result['playersWithoutHero'] = self::getCollectionFromDb( $sql );
+        $result = self::getCollectionFromDb( $sql );
 
-        if (count($result['playersWithoutHero']) == 0) {
+        if (count($result) == 0) {
             $this->gamestate->nextState( 'everyoneChoosedHero' );
         }
         else {
@@ -232,6 +232,7 @@ class UnmatchedBattle extends Table
     function distributeCards()
     {
         self::debug("Distributing Cards");
+        $this->gamestate->nextState( 'placeHero' );
     }
     
 //////////////////////////////////////////////////////////////////////////////

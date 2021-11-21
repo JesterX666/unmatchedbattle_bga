@@ -61,7 +61,17 @@ $game_options = array(
                         2 => array( 'name' => totranslate('Marmoreal') ),
                         3 => array( 'name' => totranslate('Sarpedon') ),
                     ),
-            'default' => 1
+            'default' => 1            
+        ),
+
+        // Is the game played in teams (true) or alone (false).  Only available in 4 players mode.
+        101 => array(
+            'name' => totranslate('Team play'),    
+            'values' => array(
+                        1 => array( 'name' => totranslate('Yes') ),
+                        2 => array( 'name' => totranslate('No') ),
+                    ),
+            'default' => 2
         )
 );
 
