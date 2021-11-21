@@ -197,16 +197,18 @@ class UnmatchedBattle extends Table
         
         $player_id = self::getActivePlayerId();
 
-        // Notify all players about the choosen hero
-        self::notifyAllPlayers( "chosenHero", clienttranslate( '${player_name} choosed to play ${hero}' ), array(
+        // Set the choosen hero in the database
+        $sql = "UPDATE player SET hero = '".$hero."' WHERE player_id = ".$player_id;
+        self::DbQuery( $sql );
+
+        // Notify all players about the hero chosen and the remaining available heroes
+        $availableHeros = $this->getAvailableHeros();
+
+        self::notifyAllPlayers( "heroSelected", clienttranslate( '${player_name} choosed to play ${hero}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'hero' => $hero,
         ) );
-
-        // Set the choosen hero in the database
-        $sql = "UPDATE player SET hero = '".$hero."' WHERE player_id = ".$player_id;
-        self::DbQuery( $sql );
 
         // Next player
         $this->gamestate->nextState( 'chooseHeroNextPlayer' );
@@ -366,6 +368,26 @@ class UnmatchedBattle extends Table
     // Returns the list of available heros for choosing
     protected function getAvailableHeros()
     {
-        return $this->heros;
+        self::debug("getAvailableHeros");
+
+        // Get already choosed heros
+        $sql = "SELECT hero FROM player WHERE hero IS NOT NULL";
+        $result = self::getCollectionFromDb( $sql );
+        $remainingHeroes = array();
+
+        $databaseHeroesNames = array_column($result, 'hero');
+
+        self::debug("Heroes in the DB: ".implode(', ', $databaseHeroesNames));
+
+        // Loop on each available heros and add only those who are not choosed
+        foreach ($this->heros as $hero) {
+            self::debug("Checking hero ".$hero['name']);
+
+            if (!in_array($hero['name'], array_column($result, 'hero'))) {
+                $remainingHeroes[] = $hero;
+            }
+        }
+
+        return $remainingHeroes;
     }
 }

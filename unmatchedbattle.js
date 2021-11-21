@@ -83,6 +83,8 @@ function (dojo, declare) {
 
             // Specify that there are 4 heros per row in the CSS sprite image
             this.availableHeros.image_items_per_row = 4;
+
+            debugger;
             
             var type = 0;
             // Adding all available heros to the stock, with their image
@@ -293,6 +295,9 @@ function (dojo, declare) {
             // dojo.subscribe( 'cardPlayed', this, "notif_cardPlayed" );
             // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
             // 
+
+
+            dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -311,5 +316,15 @@ function (dojo, declare) {
         },    
         
         */
+
+        notif_heroSelected: function( notif ) 
+        {
+            debugger;
+            console.log( 'notif_heroSelected' );
+            console.log( notif );
+
+            // Remove the selected hero from the available heroes list
+            this.availableHeros.removeFromStockById( notif.args.hero );            
+        }
    });             
 });
