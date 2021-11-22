@@ -116,7 +116,7 @@ class UnmatchedBattle extends Table
     
         // Get information about players
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
-        $sql = "SELECT player_id id, player_score score FROM player ";
+        $sql = "SELECT player_id id, player_score score, hero FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
@@ -220,6 +220,7 @@ class UnmatchedBattle extends Table
     }
 
 
+    // Verifies if every player has choosen a hero
     function checkEveryoneChoosedHero()
     {
         $sql = "SELECT player_id id FROM player WHERE hero is null";
@@ -238,19 +239,19 @@ class UnmatchedBattle extends Table
     {
         self::debug("Distributing Cards");
 
-        // Get all heroes
-        $sql = "SELECT hero FROM player" ;
-        $heroes = self::getCollectionFromDb( $sql );
+        // Get all players
+        $sql = "SELECT hero, player_id FROM player" ;
+        $players = self::getCollectionFromDb( $sql );
 
-        // Create cards
-        $herosnames = array_column($heroes, 'hero');
-
-        // Loop on the players
-        foreach($herosnames as $hero_name)
+        // Create cards for all players
+        foreach($players as $player)
         {            
-            self::debug("Creating card for: ".$hero_name);
+            self::debug("Creating card for: ".$player['hero']);
 
-            $cardsofhero = array_filter($this->cardtypes, function($obj) use ($hero_name) { return $obj['deck'] == $hero_name; && $obj['type'] == 'card'; });
+            $cardsofhero = array_filter($this->cardtypes, function($obj) use ($player) 
+            {
+                 return $obj['deck'] == $player['hero'] && $obj['type'] == 'card'; 
+            });
             
             $cards = array();
 
@@ -258,14 +259,24 @@ class UnmatchedBattle extends Table
             foreach($cardsofhero as $card)
             {
                 self::debug("Card: ".$card['name']);
-                $cards[] = array('type' => $hero_name, 'type_arg' => $card['internal_id'], 'nbr' => $card['nbr']);
+                $cards[] = array('type' => $player['hero'], 'type_arg' => $card['internal_id'], 'nbr' => $card['nbr']);
             }
 
             // Add the cards of the hero to his their deck
-            $this->cards->createCards( $cards, 'deck_'.$hero_name );
+            $this->cards->createCards( $cards, 'deck_'.$player['hero']);
+
+            // Shuffle the deck
+            $this->cards->shuffle( 'deck_'.$player['hero'] );
+
+            // Give 5 cards to the player
+            $this->cards->pickCards(5, 'deck_'.$player['hero'], $player['player_id']);
+
+            $playerhand = array_column($this->cards->getPlayerHand($player['player_id']), 'type_arg');
+
+            // Notify the player about the cards he received (and the definition of the cards in his deck)
+            self::notifyPlayer( $player['player_id'], 'cardsReceived', '', array ('playerhand' => $playerhand, 'cards' => $cardsofhero));
         }
 
-        // Notify all players about the cards distribution
         $this->gamestate->nextState( 'placeHero' );
     }
     

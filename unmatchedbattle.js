@@ -31,8 +31,8 @@ function (dojo, declare) {
             // this.myGlobalValue = 0;
 
             // Dimensions of cards
-            this.cardheight = 520;
-            this.cardwidth = 372;
+            this.cardheight = 260; // Native size = 520
+            this.cardwidth = 186; // Native size = 372
         },
         
         /*
@@ -65,6 +65,9 @@ function (dojo, declare) {
             switch (gamedatas.gamestate.name) {
                 case "chooseHero":
                     this.setupChooseHero(gamedatas);
+                    break;
+                case "placeHero":
+                    this.setupPlaceHero(gamedatas);
                     break;
             }
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -105,6 +108,34 @@ function (dojo, declare) {
             });        
         },
 
+        setupPlaceHero: function (gamedatas) {            
+
+            debugger;
+            console.log(gamedatas);
+        },
+
+        initializeCardDeck: function (cards) {
+            debugger;
+            // Player hand
+            this.playerHand = new ebg.stock();
+            this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
+            this.playerHand.setSelectionMode(1);
+                        
+            // Adding all cards to the stock, with their image
+            Object.values(cards).forEach(card => {
+                // We initialise the card item type to the stock
+                this.availableHeros.addItemType(card['internal_id'], 0, g_gamethemeurl + 'img/Cards/' + card['image']);
+            });        
+        },
+        
+        initializePlayerHand: function (playerhand) {
+            debugger;
+            playerhand.forEach(card=> {
+                // We add the card to the stock
+                this.availableHeros.addToStock(card);
+            });            
+        },
+
         onChangeHeroSelection: function (selection) {
             var items = this.availableHeros.getSelectedItems();
             if ((items.length == 1) && this.isCurrentPlayerActive()) {
@@ -123,7 +154,10 @@ function (dojo, declare) {
                 var items = this.availableHeros.getSelectedItems();
                 var hero = items[0]['id'];
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseHero.html', 
-                               { 'lock': true, 'hero': hero }, this, 'onHeroSelectResponse');                
+                               { 'lock': true, 'hero': hero }, this, 'onHeroSelectResponse');
+
+                document.getElementById('availableHeros').style.display = 'none';
+                document.getElementById('mainGame').style.display = 'block';
             }
         },
 
@@ -298,6 +332,7 @@ function (dojo, declare) {
 
 
             dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
+            dojo.subscribe( 'cardsReceived', this, "notif_cardsReceived" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -324,7 +359,19 @@ function (dojo, declare) {
             console.log( notif );
 
             // Remove the selected hero from the available heroes list
-            this.availableHeros.removeFromStockById( notif.args.hero );            
+            this.availableHeros.removeFromStockById( notif.args.hero );
+        },
+
+        notif_cardsReceived: function( notif ) 
+        {
+            debugger;
+
+            this.initializeCardDeck(notif.args.cards);
+            this.initializePlayerHand(notif.args.playerhand);
+            
+            console.log( 'notif_cardsReceived' );
+            console.log( notif );
         }
+
    });             
 });
