@@ -72,3 +72,7 @@
 		width: 2431px;
 		height: 1587px;
 }
+
+.cardContains {
+        background-size: contain;
+}

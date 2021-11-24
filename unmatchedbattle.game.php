@@ -115,14 +115,33 @@ class UnmatchedBattle extends Table
         $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
     
         // Get information about players
-        // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score, hero FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
+
+        $hero = $result['players'][$current_player_id]['hero'];
+
+        self::debug("getAllData HERO : ".$hero);
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
 
-        // Which heros are available at the start of the game
-        $result['availableHeros'] = $this->getAvailableHeros();
+        $state = $this->gamestate->state();
+        switch($state['name'])
+        {
+            case 'chooseHero':
+            case 'chooseHeroNextPlayer':
+                // Which heros are available at the start of the game
+                $result['availableHeros'] = $this->getAvailableHeros();
+                break;
+            case 'distributeCards':
+            case 'placeHero':
+                $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
+                {
+                     return $obj['deck'] == $hero && $obj['type'] == 'card'; 
+                });
+            
+                $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
+                break;
+        }
 
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
@@ -192,7 +211,6 @@ class UnmatchedBattle extends Table
     }
     
     */
-
 
     function chooseHero( $hero )
     {

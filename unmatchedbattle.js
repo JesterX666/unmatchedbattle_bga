@@ -81,6 +81,7 @@ function (dojo, declare) {
             this.availableHeros = new ebg.stock();
             this.availableHeros.create( this, $('availableHeros'), this.cardwidth, this.cardheight );
             this.availableHeros.setSelectionMode(1);
+            this.availableHeros.extraClasses = "cardContains";
             
             dojo.connect (this.availableHeros, 'onChangeSelection', this, 'onChangeHeroSelection');
 
@@ -112,6 +113,8 @@ function (dojo, declare) {
 
             debugger;
             console.log(gamedatas);
+            this.initializeCardDeck(gamedatas.playerDeck);
+            this.initializePlayerHand(gamedatas.playerHand);
         },
 
         initializeCardDeck: function (cards) {
@@ -120,11 +123,12 @@ function (dojo, declare) {
             this.playerHand = new ebg.stock();
             this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
             this.playerHand.setSelectionMode(1);
+            this.playerHand.extraClasses = "cardContains";
                         
             // Adding all cards to the stock, with their image
             Object.values(cards).forEach(card => {
                 // We initialise the card item type to the stock
-                this.availableHeros.addItemType(card['internal_id'], 0, g_gamethemeurl + 'img/Cards/' + card['image']);
+                this.playerHand.addItemType(card['internal_id'], 0, g_gamethemeurl + 'img/Cards/' + card['image']);
             });        
         },
         
@@ -132,7 +136,7 @@ function (dojo, declare) {
             debugger;
             playerhand.forEach(card=> {
                 // We add the card to the stock
-                this.availableHeros.addToStock(card);
+                this.playerHand.addToStock(card);
             });            
         },
 
