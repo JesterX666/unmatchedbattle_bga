@@ -49,6 +49,7 @@
 
         <!-- BEGIN map -->
             <div class="mapProxy">
+                <div class="selectionCircle" style="left: 300px; top: 120px;"></div>
             </div>
         <!-- END map -->
     </div>

@@ -77,3 +77,13 @@
 .cardContains {
         background-size: contain;
 }
+
+.selectionCircle {
+    position: relative;
+    height: 120px;
+    width: 120px;
+    background-color: #bbb;
+    opacity: 0.5;
+    border-radius: 50%;
+    display: inline-block;
+}

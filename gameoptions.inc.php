@@ -71,7 +71,14 @@ $game_options = array(
                         1 => array( 'name' => totranslate('Yes') ),
                         2 => array( 'name' => totranslate('No') ),
                     ),
-            'default' => 2
+            'default' => 2,
+            'displaycondition' => array( 
+                // Note: do not display this option unless these conditions are met
+                array(
+                    'type' => 'minplayers',                    
+                    'value' => array(4)
+                ),
+            )
         )
 );
 

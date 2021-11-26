@@ -115,7 +115,7 @@ function (dojo, declare) {
             debugger;
             console.log(gamedatas);
             this.initializeCardDeck(gamedatas.playerDeck);
-            this.initializePlayerHand(gamedatas.playerHand);
+            this.initializePlayerHand(gamedatas.playerHand);            
         },
 
         initializeCardDeck: function (cards) {
