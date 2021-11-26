@@ -19,12 +19,231 @@
  *
  */
 
- // List of boards
+ // List of boards and their zones
 
  $this->boards = array(
     1 => array(
         'name' => 'Marmoreal',
-        'map' => 'Marmoreal.jpg'
+        'map' => 'Marmoreal.jpg',
+        'zones' => array(
+            1 => array(
+                'colors' => array( 1 ),
+                'x' => 360,
+                'y' => 180,
+                'startingPlayer' => 0,
+                'exits' => array( 8, 2 )
+            ),
+            2 => array(
+                'colors' => array( 2 ),
+                'x' => 654,
+                'y' => 156,
+                'startingPlayer' => 0,
+                'exits' => array( 1, 3 )
+            ),
+            3 => array(
+                'colors' => array( 2 ),
+                'x' => 946,
+                'y' => 150,
+                'startingPlayer' => 3,
+                'exits' => array( 2, 4 )
+            ),
+            4 => array(
+                'colors' => array( 2, 3, 4 ),
+                'x' => 1224,
+                'y' => 230,
+                'startingPlayer' => 0,
+                'exits' => array( 3, 5, 11 )
+            ),
+            5 => array(
+                'colors' => array( 2 ),
+                'x' => 1530,
+                'y' => 154,
+                'startingPlayer' => 0,
+                'exits' => array( 4, 6 )
+            ),
+            6 => array(
+                'colors' => array( 2 ),
+                'x' => 1836,
+                'y' => 156,
+                'startingPlayer' => 0,
+                'exits' => array( 5, 7 )
+            ),
+            7 => array(
+                'colors' => array( 4 ),
+                'x' => 2128,
+                'y' => 360,
+                'startingPlayer' => 0,
+                'exits' => array( 6, 13, 14 )
+            ),
+            8 => array(
+                'colors' => array( 1, 3, 5 ),
+                'x' => 298,
+                'y' => 434,
+                'startingPlayer' => 0,
+                'exits' => array( 1, 9, 15 )
+            ),
+            9 => array(
+                'colors' => array( 1, 3 ),
+                'x' => 588,
+                'y' => 472,
+                'startingPlayer' => 0,
+                'exits' => array( 8, 10, 16 )
+            ),
+            10 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 898,
+                'y' => 492,
+                'startingPlayer' => 0,
+                'exits' => array( 9, 11, 16, 17 )
+            ),
+            11 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 1224,
+                'y' => 584,
+                'startingPlayer' => 0,
+                'exits' => array( 4, 10, 12 )
+            ),
+            12 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 1538,
+                'y' => 496,
+                'startingPlayer' => 0,
+                'exits' => array( 11, 13, 19, 20 )
+            ),
+            13 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 1850,
+                'y' => 476,
+                'startingPlayer' => 4,
+                'exits' => array( 12, 7, 20 )
+            ),
+            14 => array(
+                'colors' => array( 4, 6 ),
+                'x' => 2138,
+                'y' => 650,
+                'startingPlayer' => 0,
+                'exits' => array( 7, 20, 26 )
+            ),
+            15 => array(
+                'colors' => array( 1, 5 ),
+                'x' => 304,
+                'y' => 702,
+                'startingPlayer' => 1,
+                'exits' => array( 8, 21 )
+            ),
+            16 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 730,
+                'y' => 704,
+                'startingPlayer' => 0,
+                'exits' => array( 9, 10, 17 )
+            ),                            
+            17 => array(
+                'colors' => array( 3, 4, 7 ),
+                'x' => 1014,
+                'y' => 798,
+                'startingPlayer' => 0,
+                'exits' => array( 10, 16, 18 )
+            ),
+            18 => array(
+                'colors' => array( 3, 4, 7 ),
+                'x' => 1224,
+                'y' => 956,
+                'startingPlayer' => 0,
+                'exits' => array( 17, 19, 29, 30 )
+            ),
+            19 => array(
+                'colors' => array( 3, 4, 7 ),
+                'x' => 1436,
+                'y' => 802,
+                'startingPlayer' => 0,
+                'exits' => array( 18, 12, 20 )
+            ),
+            20 => array(
+                'colors' => array( 3, 4 ),
+                'x' => 1722,
+                'y' => 706,
+                'startingPlayer' => 0,
+                'exits' => array( 19, 12, 13, 14 )
+            ),
+            21 => array(
+                'colors' => array( 1, 5 ),
+                'x' => 336,
+                'y' => 964,
+                'startingPlayer' => 0,
+                'exits' => array( 15, 22, 27 )
+            ),
+            22 => array(
+                'colors' => array( 5 ),
+                'x' => 606,
+                'y' => 994,
+                'startingPlayer' => 0,
+                'exits' => array( 21, 23 )
+            ),
+            23 => array(
+                'colors' => array( 3, 4, 8 ),
+                'x' => 934,
+                'y' => 1154,
+                'startingPlayer' => 0,
+                'exits' => array( 22, 24 )
+            ),
+            24 => array(
+                'colors' => array( 3, 4, 8 ),
+                'x' => 1500,
+                'y' => 1162,
+                'startingPlayer' => 0,
+                'exits' => array( 23, 25 )
+            ),
+            25 => array(
+                'colors' => array( 6 ),
+                'x' => 1896,
+                'y' => 1044,
+                'startingPlayer' => 0,
+                'exits' => array( 24, 26, 31)
+            ),
+            26 => array(
+                'colors' => array( 6 ),
+                'x' => 2130,
+                'y' => 916,
+                'startingPlayer' => 0,
+                'exits' => array( 14, 25 )
+            ),
+            27 => array(
+                'colors' => array( 8 ),
+                'x' => 456,
+                'y' => 1356,
+                'startingPlayer' => 0,
+                'exits' => array( 21, 28 )
+            ),
+            28 => array(
+                'colors' => array( 8 ),
+                'x' => 784,
+                'y' => 1416,
+                'startingPlayer' => 0,
+                'exits' => array( 27, 29 )
+            ),
+            29 => array(
+                'colors' => array( 7, 8 ),
+                'x' => 1092,
+                'y' => 1406,
+                'startingPlayer' => 0,
+                'exits' => array( 18, 28, 30 )
+            ),
+            30 => array(
+                'colors' => array( 7, 8 ),
+                'x' => 1358,
+                'y' => 1426,
+                'startingPlayer' => 0,
+                'exits' => array( 18, 29, 31 )
+            ),
+            31 => array(
+                'colors' => array( 6, 8 ),
+                'x' => 1744,
+                'y' => 1318,
+                'startingPlayer' => 2,
+                'exits' => array( 30, 25 )
+            ),                            
+        )
     ),
     2 => array(
         'name' => 'Sarpedon',

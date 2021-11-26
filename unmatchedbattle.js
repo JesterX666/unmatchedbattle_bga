@@ -19,7 +19,8 @@ define([
     "dojo","dojo/_base/declare",
     "ebg/core/gamegui",
     "ebg/counter",
-    "ebg/stock"
+    "ebg/stock",
+    "ebg/expandablesection"
 ],
 function (dojo, declare) {
     return declare("bgagame.unmatchedbattle", ebg.core.gamegui, {
@@ -130,6 +131,10 @@ function (dojo, declare) {
                 // We initialise the card item type to the stock
                 this.playerHand.addItemType(card['internal_id'], 0, g_gamethemeurl + 'img/Cards/' + card['image']);
             });        
+
+            this.gameHelper = new ebg.expandablesection();
+            this.gameHelper.create(this, "gameHelper");
+            //this.gameHelper.expand();       
         },
         
         initializePlayerHand: function (playerhand) {
@@ -160,8 +165,6 @@ function (dojo, declare) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseHero.html', 
                                { 'lock': true, 'hero': hero }, this, 'onHeroSelectResponse');
 
-                document.getElementById('availableHeros').style.display = 'none';
-                document.getElementById('mainGame').style.display = 'block';
             }
         },
 
@@ -369,6 +372,9 @@ function (dojo, declare) {
         notif_cardsReceived: function( notif ) 
         {
             debugger;
+
+            document.getElementById('availableHeros').style.display = 'none';
+            document.getElementById('mainGame').style.display = 'block';
 
             this.initializeCardDeck(notif.args.cards);
             this.initializePlayerHand(notif.args.playerhand);

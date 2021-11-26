@@ -69,8 +69,9 @@
 
 .mapProxy {
         background-image: url('img/Marmoreal.jpg');
-		width: 2431px;
-		height: 1587px;
+        background-repeat: no-repeat;
+        background-size: contain;
+        height: 1500px;
 }
 
 .cardContains {
