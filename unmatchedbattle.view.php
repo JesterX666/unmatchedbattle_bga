@@ -39,7 +39,9 @@
 
         /*********** Place your code below:  ************/
 
-
+        // TODO : replace by real map
+        $this->tpl['BOARD_WIDTH'] = 2431;
+        $this->tpl['BOARD_HEIGHT'] = 1587;
         /*
         
         // Examples: set the value of some element defined in your tpl file like this: {MY_VARIABLE_ELEMENT}
@@ -76,6 +78,12 @@
         
         */
 
+        //$this->page->begin_block( "unmatchedbattle_unmatchedbattle", "square" );
+        
+        //$this->page->insert_block( "unmatchedbattle_unmatchedbattle", "board" );
+
+
+        //jstpl_svgAreas
 
 
         /*********** Do not change anything below this line  ************/
