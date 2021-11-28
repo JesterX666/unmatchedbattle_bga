@@ -47,6 +47,16 @@
             </div>
         <!-- END player -->
 
+        <!-- BEGIN henchmans -->
+            <div id="henchmans" class="whiteblock">
+                <h3>Henchmans</h3>
+                <!-- BEGIN henchman -->
+                <div class="{HENCHMAN_CLASS}">
+                </div>
+                <!-- END henchman -->
+            </div>
+        <!-- END henchmans -->
+
         <!== BEGIN zoom -->
         <input type="range" id="zoomLevel" min="=100" max="100">
         <!== END zoom -->
@@ -55,7 +65,11 @@
             <div class="mapContainer">
                 <div id="mapImage" class="mapMarmoreal">     
                     <!-- BEGIN area -->           
-                        <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP};"></div>
+                        <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP}; " data-exits="{EXITS}">
+                            <!-- BEGIN token -->
+                                <div class="{TOKEN_CLASS}"></div>
+                            <!-- END token -->
+                        </div>
                     <!-- END area -->
                 </div>
             </div>
@@ -72,8 +86,6 @@
 var jstpl_some_game_item='<div class="my_game_item" id="my_game_item_${MY_ITEM_ID}"></div>';
 
 */
-
-var jstpl_areas='<div class="selectionCircle" style="top: {top}; left: {left};"></div>';
 
 </script>  
 

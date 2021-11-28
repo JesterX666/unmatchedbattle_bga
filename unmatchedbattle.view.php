@@ -85,7 +85,13 @@
        self::debug("$$$".$current_board['name']);
 
       foreach($current_board['zones'] as $zone_key => $zone) {
-        $this->page->insert_block( "area", array('AREA_ID' => $zone_key, 'LEFT' => ($zone['x'] - 110).'px', 'TOP' => ($zone['y'] - 110).'px' ) );
+        $this->page->insert_block( "area", array
+          (
+            'AREA_ID' => $zone_key,
+            'LEFT' => ($zone['x'] - 110).'px', 
+            'TOP' => ($zone['y'] - 110).'px',
+            'EXITS' => json_encode($zone['exits']),
+          ) );
       }        
 
         //jstpl_svgAreas

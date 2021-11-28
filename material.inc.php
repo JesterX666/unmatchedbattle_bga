@@ -28,15 +28,15 @@
         'zones' => array(
             1 => array(
                 'colors' => array( 1 ),
-                'x' => 360,
-                'y' => 180,
+                'x' => 359,
+                'y' => 179,
                 'startingPlayer' => 0,
                 'exits' => array( 8, 2 )
             ),
             2 => array(
                 'colors' => array( 2 ),
                 'x' => 654,
-                'y' => 156,
+                'y' => 154,
                 'startingPlayer' => 0,
                 'exits' => array( 1, 3 )
             ),
@@ -256,15 +256,51 @@
 $this->heros = array(
     1 => array(
         "name" => "Alice",
+        "image" => "Alice.png",
+        "henchman" => array(
+            1 => array(
+                "name" => "Jabberwock",
+                "image" => "Jabberwock.png",
+            ),         
+        ),
     ),
     2 => array(
         "name" => "Arthur",
+        "image" => "Arthur.png",
+        "henchman" => array(
+            1 => array(
+                "name" => "Merlin",
+                "image" => "Merlin.png",
+            ),
+        ),
     ),
     3 => array(
         "name" => "Medusa",
+        "image" => "Medusa.png",
+        "henchman" => array(
+            1 => array(
+                "name" => "Harpy",
+                "image" => "Harpy.png",
+            ),
+            2 => array(
+                "name" => "Harpy",
+                "image" => "Harpy.png",
+            ),
+            3 => array(
+                "name" => "Harpy",
+                "image" => "Harpy.png",
+            ),
+        ),
     ),
     4 => array(
         "name" => "Sinbad",
+        "image" => "Sinbad.png",
+        "henchman" => array(
+            1 => array(
+                "name" => "Porter",
+                "image" => "Porter.png",
+            ),
+        ),
     ),
 );
 
