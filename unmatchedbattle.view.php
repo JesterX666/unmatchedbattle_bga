@@ -78,10 +78,15 @@
         
         */
 
-        //$this->page->begin_block( "unmatchedbattle_unmatchedbattle", "square" );
-        
-        //$this->page->insert_block( "unmatchedbattle_unmatchedbattle", "board" );
+       $this->page->begin_block( "unmatchedbattle_unmatchedbattle", "area" );
 
+       // TODO use the choosen map
+       $current_board = $this->game->boards[1];
+       self::debug("$$$".$current_board['name']);
+
+      foreach($current_board['zones'] as $zone_key => $zone) {
+        $this->page->insert_block( "area", array('AREA_ID' => $zone_key, 'LEFT' => ($zone['x'] - 110).'px', 'TOP' => ($zone['y'] - 110).'px' ) );
+      }        
 
         //jstpl_svgAreas
 

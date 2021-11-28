@@ -47,12 +47,18 @@
             </div>
         <!-- END player -->
 
-        <!-- BEGIN map -->
-            <svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 {BOARD_WIDTH} {BOARD_HEIGHT}" preserveAspectRatio="xMinYMin meet" >
-                <image width="{BOARD_WIDTH}" height="{BOARD_HEIGHT}" href="/img/Marmoreal.jpg">
-                </image>
-                ${MAP_AREAS}
-            </svg>';
+        <!== BEGIN zoom -->
+        <input type="range" id="zoomLevel" min="=100" max="100">
+        <!== END zoom -->
+
+        <!-- BEGIN map -->        
+            <div class="mapContainer">
+                <div id="mapImage" class="mapMarmoreal">     
+                    <!-- BEGIN area -->           
+                        <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP};"></div>
+                    <!-- END area -->
+                </div>
+            </div>
         <!-- END map -->
     </div>
 <!-- END main game -->
@@ -67,7 +73,7 @@ var jstpl_some_game_item='<div class="my_game_item" id="my_game_item_${MY_ITEM_I
 
 */
 
-var jstpl_svgAreas='<circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />';
+var jstpl_areas='<div class="selectionCircle" style="top: {top}; left: {left};"></div>';
 
 </script>  
 

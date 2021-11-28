@@ -67,22 +67,28 @@
     }
 */
 
-.mapProxy {
-        background-image: url('img/Marmoreal.jpg');
-        background-repeat: no-repeat;
-        background-size: contain;
-        height: 1500px;
+.mapContainer {
+    width: 100%;
+    height: 800px;
+    overflow: auto;
+}
+
+.mapMarmoreal {
+    background-image: url('img/Marmoreal.jpg');
+    width: 2431px;
+    height: 1587px;
+    position: relative;
 }
 
 .cardContains {
-        background-size: contain;
+    background-size: contain;
 }
 
 .selectionCircle {
-    position: relative;
-    height: 120px;
-    width: 120px;
-    background-color: #bbb;
+    position: absolute;
+    height: 220px;
+    width: 220px;
+    background-color: #b00;
     opacity: 0.5;
     border-radius: 50%;
     display: inline-block;

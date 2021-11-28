@@ -74,6 +74,8 @@ function (dojo, declare) {
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
+            dojo.connect(this.zoomLevel, "onchange", this.onZoomLevelChange);
+
             console.log( "Ending game setup" );
         },
 
@@ -259,6 +261,10 @@ function (dojo, declare) {
         
         */
 
+        onZoomLevelChange: function(event) {
+            console.log(event.target.value);
+            document.getElementById('mapImage').style.transform = 'scale(' + (event.target.value) / 100 + ')';
+        },
 
         ///////////////////////////////////////////////////
         //// Player's action
