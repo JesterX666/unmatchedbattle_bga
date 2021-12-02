@@ -53,15 +53,15 @@ $game_options = array(
 
     */
 
-        // Choice for the battleground map
+        // Choice for the battleground map, the index of the array corresponds directly to the map ID
         100 => array(
             'name' => totranslate('Map choice'),    
-            'values' => array(
-                        1 => array( 'name' => totranslate('Random') ),
-                        2 => array( 'name' => totranslate('Marmoreal') ),
-                        3 => array( 'name' => totranslate('Sarpedon') ),
+            'values' => array(                
+                        0 => array( 'name' => totranslate('Random') ),
+                        1 => array( 'name' => totranslate('Marmoreal') ),
+                        2 => array( 'name' => totranslate('Sarpedon') ),
                     ),
-            'default' => 1            
+            'default' => 0            
         ),
 
         // Is the game played in teams (true) or alone (false).  Only available in 4 players mode.

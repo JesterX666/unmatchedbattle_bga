@@ -90,14 +90,34 @@ class UnmatchedBattle extends Table
         //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
         //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
 
-        // TODO: setup the initial game situation here
-       
-
+        $this->initTables();
+        
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
 
         /************ End of the game initialization *****/
     }
+
+    protected function initTables()
+    {        
+        // TODO: setup the initial game situation here
+        if ($this->gamestate->table_globals[100] == 1)
+        {
+            // Determine a random map
+            $board = $this->boards[array_rand($this->boards)];
+            self::debug("Random map : ".$board['name']);
+        }
+        else
+        {
+            // Find the map in the list
+            $board = $this->boards[$this->gamestate->table_globals[100]];
+            self::debug("!!!!!!Chosen map : ".$board['name']." -- ".$board['map']);
+        }   
+               
+        // We save the board name in the game state
+        self::setGameStateValue( 'board', $board['name'] );
+    }
+
 
     /*
         getAllDatas: 
@@ -117,12 +137,11 @@ class UnmatchedBattle extends Table
         // Get information about players
         $sql = "SELECT player_id id, player_score score, hero FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-
-        $hero = $result['players'][$current_player_id]['hero'];
-
-        self::debug("getAllData HERO : ".$hero);
   
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
+
+        $hero = $result['players'][$current_player_id]['hero'];
+        self::debug("getAllData HERO : ".$hero);
 
         $state = $this->gamestate->state();
         switch($state['name'])
@@ -140,6 +159,8 @@ class UnmatchedBattle extends Table
                 });
             
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
+
+                //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
                 break;
         }
 
@@ -241,10 +262,36 @@ class UnmatchedBattle extends Table
     // Verifies if every player has choosen a hero
     function checkEveryoneChoosedHero()
     {
-        $sql = "SELECT player_id id FROM player WHERE hero is null";
+        $sql = "SELECT player_id id, hero FROM player WHERE hero is null";
         $result = self::getCollectionFromDb( $sql );
 
         if (count($result) == 0) {
+            // We place the heros on the table
+
+            // We loop on all players in order of play (player_no)
+            foreach ($this->players as $player) {
+                self::debug("Placing hero for player ".$player['player_id']." (".$player['player_no'].")");
+
+                // We find the hero of the player
+                $hero = $result[$player['player_id']]['hero'];
+                self::debug("Hero is ".$hero);
+
+                // We find the starting location of said hero
+                //$location = array_search($this->current_map['']));
+
+                /*
+                $sql = "INSERT INTO tokens (token_name, player_color, player_canal, player_name, player_avatar) VALUES ";
+                $values = array();
+                foreach( $players as $player_id => $player )
+                {
+                    $color = array_shift( $default_colors );
+                    $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
+                }
+                $sql .= implode( $values, ',' );
+                self::DbQuery( $sql );
+                */
+            }
+
             $this->gamestate->nextState( 'everyoneChoosedHero' );
         }
         else {
