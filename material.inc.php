@@ -260,8 +260,7 @@
     )
 );
 
-
- // List of playable heros
+// List of playable heros
 $this->heros = array(
     1 => array(
         "name" => "Alice",
@@ -270,6 +269,7 @@ $this->heros = array(
             1 => array(
                 "name" => "Jabberwock",
                 "image" => "Jabberwock.png",
+                "internal_id" => "Alice_1"
             ),         
         ),
     ),
@@ -280,6 +280,7 @@ $this->heros = array(
             1 => array(
                 "name" => "Merlin",
                 "image" => "Merlin.png",
+                "internal_id" => "Arthur_1"
             ),
         ),
     ),
@@ -290,14 +291,17 @@ $this->heros = array(
             1 => array(
                 "name" => "Harpy",
                 "image" => "Harpy.png",
+                "internal_id" => "Medusa_1"
             ),
             2 => array(
                 "name" => "Harpy",
                 "image" => "Harpy.png",
+                "internal_id" => "Medusa_2"
             ),
             3 => array(
                 "name" => "Harpy",
                 "image" => "Harpy.png",
+                "internal_id" => "Medusa_3"
             ),
         ),
     ),
@@ -308,6 +312,7 @@ $this->heros = array(
             1 => array(
                 "name" => "Porter",
                 "image" => "Porter.png",
+                "internal_id" => "Sinbad_1"
             ),
         ),
     ),

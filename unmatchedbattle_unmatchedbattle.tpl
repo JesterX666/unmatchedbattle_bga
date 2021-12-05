@@ -78,6 +78,8 @@
 
 // Javascript HTML templates
 
+var jstpl_token='<div class="token {TOKEN_TYPE}"></div>';
+
 /*
 // Example:
 var jstpl_some_game_item='<div class="my_game_item" id="my_game_item_${MY_ITEM_ID}"></div>';

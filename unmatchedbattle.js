@@ -359,6 +359,7 @@ function (dojo, declare) {
             dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
             dojo.subscribe( 'cardsReceived', this, "notif_cardsReceived" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
+            dojo.subscribe( 'placeSidekicks', this, "notif_placeSidekicks" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -409,6 +410,13 @@ function (dojo, declare) {
             console.log( notif.args.tokensPlacement );
 
             this.placeTokens(notif.args.tokensPlacement);
+        },
+
+        notif_placeSidekicks: function( notif )
+        {
+            debugger;
+            console.log( 'notif_placeTokens' );
+            console.log( notif.args.tokensPlacement );
         }
 
    });             

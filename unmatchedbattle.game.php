@@ -154,7 +154,7 @@ class UnmatchedBattle extends Table
                 break;
             case 'distributeCards':
             case 'placeHeroStartingArea':
-            case 'assignSidekicks':
+            case 'assignSidekicks':                
             case 'placeSidekickStartingArea':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
@@ -329,8 +329,28 @@ class UnmatchedBattle extends Table
 
     // Assign sidekicks to each players
     function assignSidekicks()
-    {
+    {        
+        $sql = "SELECT player_id, hero FROM player";
+        $playersHeros = self::getCollectionFromDb( $sql );
+
+        foreach($playersHeros as $playerHero)
+        {
+            $this->notifySidekicksPlacement($playerHero['player_id'], $playerHero['hero']);
+        }
+
         $this->gamestate->nextState( 'placeSidekicks' );
+    }
+
+    // Notify a player about which sidekicks he has to place
+    function notifySidekicksPlacement($player_id, $hero)
+    {
+        $key = array_search($hero, array_column($this->heros, 'name'));
+        $sidekicks= $this->heros[$key]['sidekicks'];
+        self::debug("Assigning sidekick: ".json_encode($sidekicks));
+
+        self::notifyPlayer($player_id, "placeSidekicks", "", array(
+            'sidekicks' => $sidekicks
+        ));
     }
 
     function distributeCards()

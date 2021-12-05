@@ -78,12 +78,13 @@
         
         */
 
-       $this->page->begin_block( "unmatchedbattle_unmatchedbattle", "area" );
-       //$this->page->begin_block( "unmatchedbattle_unmatchedbattle", "token" );
+      $tokens = $this->getTokensPlacement();
 
-       // TODO use the choosen map
-       $current_board = $this->game->boards[1];
-       self::debug("$$$".$current_board['name']);
+      $this->page->begin_block( "unmatchedbattle_unmatchedbattle", "area" );
+
+      // TODO use the choosen map
+      $current_board = $this->game->boards[1];
+      self::debug("Drawing board: ".$current_board['name']);
 
       foreach($current_board['zones'] as $zone_key => $zone) {
         $this->page->insert_block( "area", array
