@@ -290,31 +290,27 @@ class UnmatchedBattle extends Table
         // We loop on all players in order of play (player_no)
         foreach ($this->players as $player)
         {
-            self::debug("Player JSON: ".json_encode($player));
-            self::debug("Placing hero for player ".$player['player_id']." (".$player['player_no'].")");
-            self::debug("Player hero: ".json_encode($playersHeros));
             $playerHero = $playersHeros[$player['player_id']];
-            self::debug("Player hero: ".json_encode($playerHero));           
-            self::debug("Hero is ".$playerHero['hero']);
                             
-            // We find the starting location of said hero
-            $location = array_search($player['player_no'], array_column($board['zones'], 'startingPlayer'));
-
-            self::debug("Location is ".json_encode($location));
-                
-
-                /*
-                $sql = "INSERT INTO tokens (token_name, player_color, player_canal, player_name, player_avatar) VALUES ";
-                $values = array();
-                foreach( $players as $player_id => $player )
+            // We find the starting location of said hero           
+            foreach($board['zones'] as $key => $zone)
+            {
+                if ($zone['startingPlayer'] == $player['player_no'])
                 {
-                    $color = array_shift( $default_colors );
-                    $values[] = "('".$player_id."','$color','".$player['player_canal']."','".addslashes( $player['player_name'] )."','".addslashes( $player['player_avatar'] )."')";
+                    self::debug("Hero ".$playerHero['hero']." is in starting area ".$key);
+                    $startingArea = $zone;
+                    
+                    $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$playerHero['hero']."', ".$key.")";
+                    self::DbQuery( $sql );               
                 }
-                $sql .= implode( $values, ',' );
-                self::DbQuery( $sql );
-                */
+            }                
         }
+    }
+
+    // Place each players sidekicks in their starting area
+    function placeSidekicksInStock()
+    {
+
     }
 
     function distributeCards()

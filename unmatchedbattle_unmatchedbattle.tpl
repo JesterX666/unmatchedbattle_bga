@@ -47,15 +47,15 @@
             </div>
         <!-- END player -->
 
-        <!-- BEGIN henchmans -->
-            <div id="henchmans" class="whiteblock">
-                <h3>Henchmans</h3>
-                <!-- BEGIN henchman -->
-                <div class="{HENCHMAN_CLASS}">
+        <!-- BEGIN sidekicks -->
+            <div id="sidekicks" class="whiteblock">
+                <h3>Sidekicks</h3>
+                <!-- BEGIN sidekick -->
+                <div class="{SIDEKICK_CLASS}">
                 </div>
-                <!-- END henchman -->
+                <!-- END sidekick -->
             </div>
-        <!-- END henchmans -->
+        <!-- END sidekicks -->
 
         <!== BEGIN zoom -->
         <input type="range" id="zoomLevel" min="=100" max="100">
