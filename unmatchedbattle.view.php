@@ -79,6 +79,7 @@
         */
 
        $this->page->begin_block( "unmatchedbattle_unmatchedbattle", "area" );
+       //$this->page->begin_block( "unmatchedbattle_unmatchedbattle", "token" );
 
        // TODO use the choosen map
        $current_board = $this->game->boards[1];

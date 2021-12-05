@@ -33,7 +33,7 @@ class UnmatchedBattle extends Table
         parent::__construct();
         
         self::initGameStateLabels( array( 
-            //    "my_first_global_variable" => 10,
+            "boardId" => 10,
             //    "my_second_global_variable" => 11,
             //      ...
             //    "my_first_game_variant" => 100,
@@ -43,6 +43,7 @@ class UnmatchedBattle extends Table
 
         $this->cards = self::getNew( "module.common.deck" );
         $this->cards->init("cards");
+
 	}
 	
     protected function getGameName( )
@@ -104,18 +105,18 @@ class UnmatchedBattle extends Table
         if ($this->gamestate->table_globals[100] == 1)
         {
             // Determine a random map
-            $board = $this->boards[array_rand($this->boards)];
-            self::debug("Random map : ".$board['name']);
+            $boardId = array_rand($this->boards);
+            self::debug("Random map : ".$boardId);
         }
         else
         {
             // Find the map in the list
-            $board = $this->boards[$this->gamestate->table_globals[100]];
-            self::debug("!!!!!!Chosen map : ".$board['name']." -- ".$board['map']);
+            $boardId = $this->gamestate->table_globals[100];
+            self::debug("Chosen map : ".$boardId);
         }   
                
         // We save the board name in the game state
-        self::setGameStateValue( 'board', $board['name'] );
+        self::setGameStateInitialValue( 'boardId', $boardId );
     }
 
 
@@ -263,21 +264,44 @@ class UnmatchedBattle extends Table
     function checkEveryoneChoosedHero()
     {
         $sql = "SELECT player_id id, hero FROM player WHERE hero is null";
-        $result = self::getCollectionFromDb( $sql );
+        $playerHero = self::getCollectionFromDb( $sql );
 
-        if (count($result) == 0) {
-            // We place the heros on the table
+        if (count($playerHero) == 0) {
+            $this->gamestate->nextState( 'everyoneChoosedHero' );
+        }
+        else {
+            $this->activeNextPlayer();
+            $this->gamestate->nextState( 'chooseHero' );
+        }
+    }
 
-            // We loop on all players in order of play (player_no)
-            foreach ($this->players as $player) {
-                self::debug("Placing hero for player ".$player['player_id']." (".$player['player_no'].")");
+    function placeHeroStartingArea()
+    {
+        // Get all players
+        $sql = "SELECT player_id, hero FROM player" ;
+        $playersHeros = self::getCollectionFromDb( $sql );
 
-                // We find the hero of the player
-                $hero = $result[$player['player_id']]['hero'];
-                self::debug("Hero is ".$hero);
+        // We place the heros on the table
 
-                // We find the starting location of said hero
-                //$location = array_search($this->current_map['']));
+        // Finding the right board
+        $boardId = $this->getGameStateValue('boardId');
+        $board = $this->boards[$boardId];
+                
+        // We loop on all players in order of play (player_no)
+        foreach ($this->players as $player)
+        {
+            self::debug("Player JSON: ".json_encode($player));
+            self::debug("Placing hero for player ".$player['player_id']." (".$player['player_no'].")");
+            self::debug("Player hero: ".json_encode($playersHeros));
+            $playerHero = $playersHeros[$player['player_id']];
+            self::debug("Player hero: ".json_encode($playerHero));           
+            self::debug("Hero is ".$playerHero['hero']);
+                            
+            // We find the starting location of said hero
+            $location = array_search($player['player_no'], array_column($board['zones'], 'startingPlayer'));
+
+            self::debug("Location is ".json_encode($location));
+                
 
                 /*
                 $sql = "INSERT INTO tokens (token_name, player_color, player_canal, player_name, player_avatar) VALUES ";
@@ -290,13 +314,6 @@ class UnmatchedBattle extends Table
                 $sql .= implode( $values, ',' );
                 self::DbQuery( $sql );
                 */
-            }
-
-            $this->gamestate->nextState( 'everyoneChoosedHero' );
-        }
-        else {
-            $this->activeNextPlayer();
-            $this->gamestate->nextState( 'chooseHero' );
         }
     }
 

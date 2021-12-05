@@ -87,13 +87,21 @@ $machinestates = array(
             "action" => "distributeCards",
     		"transitions" => array( "placeHero" => 5 )
     ),
+
+    5 => array(
+        "name" => "placeHeroStartingArea",
+        "description" => clienttranslate('Placing heros to their starting area'),
+        "type" => "game",
+        "action" => "placeHeroStartingArea",
+        "transitions" => array( "placeHenchman" => 6 )
+    ),
     
-	5 => array(
-        "name" => "placeHero",
+	6 => array(
+        "name" => "placeHenchman",
         "description" => clienttranslate('${actplayer} must place his sidekicks'),
         "descriptionmyturn" => clienttranslate('${you} must place your sidekick in the same zone as your hero'),
         "type" => "activeplayer",
-        "transitions" => array( "placeHero" => 5 )
+        "transitions" => array( "placeHero" => 6 )
 ),
 /*
     Examples:

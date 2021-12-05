@@ -247,9 +247,18 @@
     ),
     2 => array(
         'name' => 'Sarpedon',
-        'map' => 'Sarpedon.jpg'
+        'map' => 'Sarpedon.jpg',
+        'zones' => array(
+            1 => array(
+                'colors' => array( 1 ),
+                'x' => 359,
+                'y' => 179,
+                'startingPlayer' => 0,
+                'exits' => array( 8, 2 )
+            ),
+        )
     )
-    );
+);
 
 
  // List of playable heros
