@@ -153,13 +153,17 @@ class UnmatchedBattle extends Table
                 $result['availableHeros'] = $this->getAvailableHeros();
                 break;
             case 'distributeCards':
-            case 'placeHero':
+            case 'placeHeroStartingArea':
+            case 'assignSidekicks':
+            case 'placeSidekickStartingArea':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
                 });
             
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
+
+                $result['tokenPlacement'] = array_column($this->getTokensPlacement());
 
                 //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
                 break;
@@ -255,6 +259,9 @@ class UnmatchedBattle extends Table
             'hero' => $hero,
         ) );
 
+
+        self::debug("Player ".$player_id." choosed to play ".$hero);
+
         // Next player
         $this->gamestate->nextState( 'chooseHeroNextPlayer' );
     }
@@ -267,6 +274,7 @@ class UnmatchedBattle extends Table
         $playerHero = self::getCollectionFromDb( $sql );
 
         if (count($playerHero) == 0) {
+            self::debug("Everyone choosed their hero");
             $this->gamestate->nextState( 'everyoneChoosedHero' );
         }
         else {
@@ -286,6 +294,8 @@ class UnmatchedBattle extends Table
         // Finding the right board
         $boardId = $this->getGameStateValue('boardId');
         $board = $this->boards[$boardId];
+
+        self::debug("Placing heros in their starting area");
                 
         // We loop on all players in order of play (player_no)
         foreach ($this->players as $player)
@@ -303,14 +313,19 @@ class UnmatchedBattle extends Table
                     $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$playerHero['hero']."', ".$key.")";
                     self::DbQuery( $sql );               
                 }
-            }                
+            }                            
         }
+
+        self::notifyAllPlayers( "placeTokens", clienttranslate( 'All heros are placed in their starting area' ),
+                                array ('tokensPlacement' => $this->getTokensPlacement()));
+
+        $this->gamestate->nextState( 'assignSidekicks' );
     }
 
-    // Place each players sidekicks in their starting area
-    function placeSidekicksInStock()
+    // Assign sidekicks to each players
+    function assignSidekicks()
     {
-
+        $this->gamestate->nextState( 'placeSidekicks' );
     }
 
     function distributeCards()
@@ -356,6 +371,14 @@ class UnmatchedBattle extends Table
         }
 
         $this->gamestate->nextState( 'placeHero' );
+    }
+
+    function getTokensPlacement()
+    {
+        $sql = "SELECT area_id, token_name FROM tokens";
+        $result = self::getCollectionFromDb( $sql );
+        
+        return $result;
     }
     
 //////////////////////////////////////////////////////////////////////////////
