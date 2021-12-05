@@ -97,3 +97,25 @@
     opacity: 0.5;
     background-color: #b00;
 }
+
+.token {
+    width: 400px;
+    height: 400px;
+    background-repeat: no-repeat;
+}
+
+.tokenAlice {
+    background-image: url('img/Alice.png');
+}
+
+.tokenArthur {
+    background-image: url('img/Arthur.png');
+}
+
+.tokenMedusa {
+    background-image: url('img/Medusa.png');
+}
+
+.tokenSinbad {
+    background-image: url('img/Sinbad.png');
+}

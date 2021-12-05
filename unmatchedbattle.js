@@ -147,6 +147,18 @@ function (dojo, declare) {
             });            
         },
 
+        placeTokens: function (tokensPlacement) {
+            debugger;
+            Object.values(tokensPlacement).forEach(token => {
+                var area = this.getAreaById(token['area_id']);
+                dojo.create("div", { class: "token token" + token.token_name }, area);
+            });
+        },
+
+        getAreaById: function (areaId) {
+            return document.getElementById('area_' + areaId);
+        },
+
         onChangeHeroSelection: function (selection) {
             var items = this.availableHeros.getSelectedItems();
             if ((items.length == 1) && this.isCurrentPlayerActive()) {
@@ -394,9 +406,9 @@ function (dojo, declare) {
         {
             debugger;
             console.log( 'notif_placeTokens' );
-            console.log( notif );
+            console.log( notif.args.tokensPlacement );
 
-            //this.initializeTokens(notif.args.tokens);
+            this.placeTokens(notif.args.tokensPlacement);
         }
 
    });             

@@ -66,9 +66,6 @@
                 <div id="mapImage" class="mapMarmoreal">     
                     <!-- BEGIN area -->           
                         <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP}; " data-exits="{EXITS}">
-                            <!-- BEGIN token -->
-                                <div class="{TOKEN_CLASS}"></div>
-                            <!-- END token -->
                         </div>
                     <!-- END area -->
                 </div>

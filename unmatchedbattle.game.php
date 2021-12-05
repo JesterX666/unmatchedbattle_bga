@@ -316,10 +316,15 @@ class UnmatchedBattle extends Table
             }                            
         }
 
-        self::notifyAllPlayers( "placeTokens", clienttranslate( 'All heros are placed in their starting area' ),
-                                array ('tokensPlacement' => $this->getTokensPlacement()));
+        $this->notifyTokensPlacement();
 
         $this->gamestate->nextState( 'assignSidekicks' );
+    }
+
+    function notifyTokensPlacement()
+    {
+        self::notifyAllPlayers( "placeTokens", clienttranslate( 'All heros are placed in their starting area' ),
+        array ('tokensPlacement' => $this->getTokensPlacement()));
     }
 
     // Assign sidekicks to each players
