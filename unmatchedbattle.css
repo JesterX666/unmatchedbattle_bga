@@ -98,10 +98,20 @@
     background-color: #b00;
 }
 
+.sidekicksPool {
+    height: 220px;
+}
+
 .token {
-    width: 400px;
-    height: 400px;
-    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    background-size: contain;
+}
+
+.tokenSelected {
+    border-radius: 55%;
+    border-style: dashed;
+    border-color: #b00;
 }
 
 .tokenAlice {
@@ -118,4 +128,20 @@
 
 .tokenSinbad {
     background-image: url('img/Sinbad.png');
+}
+
+.tokenJabberwock {
+    background-image: url('img/Jabberwock.png');
+}
+
+.tokenMerlin {
+    background-image: url('img/Merlin.png');
+}
+
+.tokenHarpy {
+    background-image: url('img/Harpy.png');
+}
+
+.tokenPorter {
+    background-image: url('img/Porter.png');
 }

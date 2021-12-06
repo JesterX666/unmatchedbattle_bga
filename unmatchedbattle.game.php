@@ -155,17 +155,21 @@ class UnmatchedBattle extends Table
             case 'distributeCards':
             case 'placeHeroStartingArea':
             case 'assignSidekicks':                
-            case 'placeSidekickStartingArea':
+            case 'placeSidekicks':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
                 });
             
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
+                $result['tokensPlacement'] = $this->getTokensPlacement();
 
-                $result['tokenPlacement'] = array_column($this->getTokensPlacement());
+                $key = array_search($hero, array_column($this->heros, 'name'));
+                $sidekicks= $this->heros[$key]['sidekicks'];
+                $result['playerSidekicks'] = $sidekicks;
 
                 //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
+                self::debug("getAllData HERO : ".json_encode($result));
                 break;
         }
 

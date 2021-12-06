@@ -67,8 +67,8 @@ function (dojo, declare) {
                 case "chooseHero":
                     this.setupChooseHero(gamedatas);
                     break;
-                case "placeHero":
-                    this.setupPlaceHero(gamedatas);
+                case "placeSidekicks":
+                    this.setupPlaceSidekicks(gamedatas);
                     break;
             }
             // Setup game notifications to handle (see "setupNotifications" method below)
@@ -112,12 +112,14 @@ function (dojo, declare) {
             });        
         },
 
-        setupPlaceHero: function (gamedatas) {            
+        setupPlaceSidekicks: function (gamedatas) {            
 
             debugger;
             console.log(gamedatas);
             this.initializeCardDeck(gamedatas.playerDeck);
-            this.initializePlayerHand(gamedatas.playerHand);            
+            this.initializePlayerHand(gamedatas.playerHand);
+            this.placeTokens(gamedatas.tokensPlacement);
+            this.placeSidekicksInPool(gamedatas.playerSidekicks);
         },
 
         initializeCardDeck: function (cards) {
@@ -152,6 +154,15 @@ function (dojo, declare) {
             Object.values(tokensPlacement).forEach(token => {
                 var area = this.getAreaById(token['area_id']);
                 dojo.create("div", { class: "token token" + token.token_name }, area);
+            });
+        },
+
+        placeSidekicksInPool: function (sidekicks) {
+            debugger;
+
+            Object.values(sidekicks).forEach(sidekick => {
+                var obj = dojo.place( this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} ) , 'sidekicksPool' );
+                dojo.connect(obj, 'onclick', this.onTokenSelected);
             });
         },
 
@@ -276,6 +287,11 @@ function (dojo, declare) {
         onZoomLevelChange: function(event) {
             console.log(event.target.value);
             document.getElementById('mapImage').style.transform = 'scale(' + (event.target.value) / 100 + ')';
+        },
+
+        onTokenSelected: function (event) {
+            debugger;
+            dojo.toggleClass(event.target, 'tokenSelected');
         },
 
         ///////////////////////////////////////////////////

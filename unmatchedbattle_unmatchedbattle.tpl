@@ -50,10 +50,10 @@
         <!-- BEGIN sidekicks -->
             <div id="sidekicks" class="whiteblock">
                 <h3>Sidekicks</h3>
-                <!-- BEGIN sidekick -->
-                <div class="{SIDEKICK_CLASS}">
+                <!-- BEGIN sidekicks -->
+                <div id="sidekicksPool" class="sidekicksPool">
                 </div>
-                <!-- END sidekick -->
+                <!-- END sidekicks -->
             </div>
         <!-- END sidekicks -->
 
@@ -78,7 +78,7 @@
 
 // Javascript HTML templates
 
-var jstpl_token='<div class="token {TOKEN_TYPE}"></div>';
+var jstpl_token='<div class="selectionCircle"><div id="${internalId}" class="token ${tokenType}"></div></div>';
 
 /*
 // Example:

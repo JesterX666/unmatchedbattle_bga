@@ -264,54 +264,44 @@
 $this->heros = array(
     1 => array(
         "name" => "Alice",
-        "image" => "Alice.png",
         "sidekicks" => array(
             1 => array(
                 "name" => "Jabberwock",
-                "image" => "Jabberwock.png",
                 "internal_id" => "Alice_1"
             ),         
         ),
     ),
     2 => array(
         "name" => "Arthur",
-        "image" => "Arthur.png",
         "sidekicks" => array(
             1 => array(
                 "name" => "Merlin",
-                "image" => "Merlin.png",
                 "internal_id" => "Arthur_1"
             ),
         ),
     ),
     3 => array(
         "name" => "Medusa",
-        "image" => "Medusa.png",
         "sidekicks" => array(
             1 => array(
                 "name" => "Harpy",
-                "image" => "Harpy.png",
                 "internal_id" => "Medusa_1"
             ),
             2 => array(
                 "name" => "Harpy",
-                "image" => "Harpy.png",
                 "internal_id" => "Medusa_2"
             ),
             3 => array(
                 "name" => "Harpy",
-                "image" => "Harpy.png",
                 "internal_id" => "Medusa_3"
             ),
         ),
     ),
     4 => array(
         "name" => "Sinbad",
-        "image" => "Sinbad.png",
         "sidekicks" => array(
             1 => array(
                 "name" => "Porter",
-                "image" => "Porter.png",
                 "internal_id" => "Sinbad_1"
             ),
         ),
