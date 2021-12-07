@@ -116,6 +116,7 @@ function (dojo, declare) {
 
             debugger;
             console.log(gamedatas);
+            this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
             this.initializePlayerHand(gamedatas.playerHand);
             this.placeTokens(gamedatas.tokensPlacement);
@@ -150,7 +151,8 @@ function (dojo, declare) {
         },
 
         placeTokens: function (tokensPlacement) {
-            debugger;
+            this.tokensPlacement = tokensPlacement;
+
             Object.values(tokensPlacement).forEach(token => {
                 var area = this.getAreaById(token['area_id']);
                 dojo.create("div", { class: "token token" + token.token_name }, area);
@@ -166,6 +168,13 @@ function (dojo, declare) {
 
         getAreaById: function (areaId) {
             return document.getElementById('area_' + areaId);
+        },
+
+        // Find the area where the hero token is placed
+        findHeroArea: function () {
+            debugger;
+            var heroPlacement = Object.values(this.tokensPlacement).find(token => token.token_name == this.playerHero);
+            return heroPlacement['area_id'];
         },
 
         // Will highlight all areas with same colors as the selected area
@@ -321,7 +330,9 @@ function (dojo, declare) {
             dojo.toggleClass(event.target, 'tokenSelected');
 
             if (event.target.classList.contains('tokenSelected')) {
-                this.highlightSameColor(15);
+                debugger;
+                var heroArea = this.findHeroArea();
+                this.highlightSameColor(heroArea);
             }
             else {
                 this.removeAreaHighlights();
@@ -465,6 +476,7 @@ function (dojo, declare) {
         notif_placeSidekicks: function( notif )
         {
             debugger;
+            this.playerHero = notif.args.playerHero;
             console.log( 'notif_placeTokens' );
             console.log( notif.args.tokensPlacement );
         }

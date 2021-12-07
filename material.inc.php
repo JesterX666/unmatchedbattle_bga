@@ -262,8 +262,7 @@
 
 // List of playable heros
 $this->heros = array(
-    1 => array(
-        "name" => "Alice",
+    "Alice" => array(
         "sidekicks" => array(
             1 => array(
                 "name" => "Jabberwock",
@@ -271,7 +270,7 @@ $this->heros = array(
             ),         
         ),
     ),
-    2 => array(
+    "Arthur" => array(
         "name" => "Arthur",
         "sidekicks" => array(
             1 => array(
@@ -280,7 +279,7 @@ $this->heros = array(
             ),
         ),
     ),
-    3 => array(
+    "Medusa" => array(
         "name" => "Medusa",
         "sidekicks" => array(
             1 => array(
@@ -297,7 +296,7 @@ $this->heros = array(
             ),
         ),
     ),
-    4 => array(
+    "Sinbad" => array(
         "name" => "Sinbad",
         "sidekicks" => array(
             1 => array(

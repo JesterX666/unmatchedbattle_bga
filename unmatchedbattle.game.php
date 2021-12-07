@@ -164,9 +164,12 @@ class UnmatchedBattle extends Table
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
                 $result['tokensPlacement'] = $this->getTokensPlacement();
 
-                $key = array_search($hero, array_column($this->heros, 'name'));
-                $sidekicks= $this->heros[$key]['sidekicks'];
-                $result['playerSidekicks'] = $sidekicks;
+                $heroObject = $this->heros[$hero];
+
+                self::debug("HERO OBJECT : ".json_encode($heroObject));
+
+                $result['playerSidekicks'] = $heroObject['sidekicks'];
+                $result['playerHero'] = $hero;
 
                 //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
                 self::debug("getAllData HERO : ".json_encode($result));
@@ -348,12 +351,11 @@ class UnmatchedBattle extends Table
     // Notify a player about which sidekicks he has to place
     function notifySidekicksPlacement($player_id, $hero)
     {
-        $key = array_search($hero, array_column($this->heros, 'name'));
-        $sidekicks= $this->heros[$key]['sidekicks'];
+        $sidekicks= $this->heros[$hero]['sidekicks'];
         self::debug("Assigning sidekick: ".json_encode($sidekicks));
 
         self::notifyPlayer($player_id, "placeSidekicks", "", array(
-            'sidekicks' => $sidekicks
+            'sidekicks' => $sidekicks, 'playerHero' => $hero
         ));
     }
 
@@ -557,9 +559,9 @@ class UnmatchedBattle extends Table
 
         // Loop on each available heros and add only those who are not choosed
         foreach ($this->heros as $hero) {
-            self::debug("Checking hero ".$hero['name']);
+            self::debug("Checking hero ".key($hero));
 
-            if (!in_array($hero['name'], array_column($result, 'hero'))) {
+            if (!in_array(key($hero), array_column($result, 'hero'))) {
                 $remainingHeroes[] = $hero;
             }
         }
