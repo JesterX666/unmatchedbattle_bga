@@ -27,7 +27,7 @@
         'map' => 'Marmoreal.jpg',
         'zones' => array(
             1 => array(
-                'colors' => array( 1 ),
+                'colors' => array( 1, 2 ),
                 'x' => 359,
                 'y' => 179,
                 'startingPlayer' => 0,

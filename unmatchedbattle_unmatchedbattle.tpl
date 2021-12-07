@@ -65,7 +65,7 @@
             <div class="mapContainer">
                 <div id="mapImage" class="mapMarmoreal">     
                     <!-- BEGIN area -->           
-                        <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP}; " data-exits="{EXITS}">
+                        <div id="area_{AREA_ID}" class="selectionCircle" style="left: {LEFT}; top: {TOP}; " data-colors="{COLORS}" data-exits="{EXITS}">
                         </div>
                     <!-- END area -->
                 </div>

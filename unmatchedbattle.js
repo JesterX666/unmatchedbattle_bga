@@ -158,16 +158,39 @@ function (dojo, declare) {
         },
 
         placeSidekicksInPool: function (sidekicks) {
-            debugger;
-
             Object.values(sidekicks).forEach(sidekick => {
                 var obj = dojo.place( this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} ) , 'sidekicksPool' );
-                dojo.connect(obj, 'onclick', this.onTokenSelected);
+                dojo.connect(obj, 'onclick', this, 'onHenchmanPlacementClick');
             });
         },
 
         getAreaById: function (areaId) {
             return document.getElementById('area_' + areaId);
+        },
+
+        // Will highlight all areas with same colors as the selected area
+        highlightSameColor: function(area_id) {
+            // Remove the highlights of all areas
+            this.removeAreaHighlights();
+            
+            var area = this.getAreaById(area_id);
+            var colors = area.getAttribute('data-colors');
+
+            colors.split(',').forEach(color => {
+                // Highlight all areas with same color
+                var areas = document.querySelectorAll('[data-colors*="' + color + '"]');
+                areas.forEach(area => {
+                    area.classList.add('selectionCircleSelected');
+                });
+            });
+        },
+
+        // Will remove the highlights of all areas
+        removeAreaHighlights:function () {
+            var areas = document.getElementsByClassName('selectionCircle');
+            for (var i = 0; i < areas.length; i++) {
+                areas[i].classList.remove('selectionCircleSelected');
+            }
         },
 
         onChangeHeroSelection: function (selection) {
@@ -292,6 +315,17 @@ function (dojo, declare) {
         onTokenSelected: function (event) {
             debugger;
             dojo.toggleClass(event.target, 'tokenSelected');
+        },
+
+        onHenchmanPlacementClick: function (event) {
+            dojo.toggleClass(event.target, 'tokenSelected');
+
+            if (event.target.classList.contains('tokenSelected')) {
+                this.highlightSameColor(15);
+            }
+            else {
+                this.removeAreaHighlights();
+            }
         },
 
         ///////////////////////////////////////////////////

@@ -78,8 +78,6 @@
         
         */
 
-      $tokens = $this->getTokensPlacement();
-
       $this->page->begin_block( "unmatchedbattle_unmatchedbattle", "area" );
 
       // TODO use the choosen map
@@ -92,7 +90,8 @@
             'AREA_ID' => $zone_key,
             'LEFT' => ($zone['x'] - 110).'px', 
             'TOP' => ($zone['y'] - 110).'px',
-            'EXITS' => json_encode($zone['exits']),
+            'EXITS' => implode(',', $zone['exits']),
+            'COLORS' => implode(',', $zone['colors']),
           ) );
       }        
 
