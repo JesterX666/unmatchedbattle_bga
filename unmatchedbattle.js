@@ -74,7 +74,12 @@ function (dojo, declare) {
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
-            dojo.connect(this.zoomLevel, "onchange", this.onZoomLevelChange);
+            dojo.connect(this.zoomLevel, "onchange", this, 'onZoomLevelChange');
+            dojo.connect(null, "ondragstart", this, 'onDragStartHandler');
+
+            dojo.query('.selectionCircle').forEach(function (selectionCircle) {
+                dojo.connect(selectionCircle, 'onclick', this, 'onAreaClick');
+            }, this);
 
             console.log( "Ending game setup" );
         },
@@ -90,9 +95,7 @@ function (dojo, declare) {
 
             // Specify that there are 4 heros per row in the CSS sprite image
             this.availableHeros.image_items_per_row = 4;
-
-            debugger;
-            
+           
             var type = 0;
             // Adding all available heros to the stock, with their image
             Object.values(gamedatas.availableHeros).forEach(hero => {
@@ -113,8 +116,6 @@ function (dojo, declare) {
         },
 
         setupPlaceSidekicks: function (gamedatas) {            
-
-            debugger;
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
@@ -124,7 +125,6 @@ function (dojo, declare) {
         },
 
         initializeCardDeck: function (cards) {
-            debugger;
             // Player hand
             this.playerHand = new ebg.stock();
             this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
@@ -143,7 +143,6 @@ function (dojo, declare) {
         },
         
         initializePlayerHand: function (playerhand) {
-            debugger;
             playerhand.forEach(card=> {
                 // We add the card to the stock
                 this.playerHand.addToStock(card);
@@ -162,7 +161,7 @@ function (dojo, declare) {
         placeSidekicksInPool: function (sidekicks) {
             Object.values(sidekicks).forEach(sidekick => {
                 var obj = dojo.place( this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} ) , 'sidekicksPool' );
-                dojo.connect(obj, 'onclick', this, 'onHenchmanPlacementClick');
+                dojo.connect(obj, 'onclick', this, 'onTokenClick');
             });
         },
 
@@ -172,7 +171,6 @@ function (dojo, declare) {
 
         // Find the area where the hero token is placed
         findHeroArea: function () {
-            debugger;
             var heroPlacement = Object.values(this.tokensPlacement).find(token => token.token_name == this.playerHero);
             return heroPlacement['area_id'];
         },
@@ -202,6 +200,10 @@ function (dojo, declare) {
             }
         },
 
+        getScaleTransformForToken(scaleSlider){
+            return 'scale(' + (scaleSlider.value) / 100 + ')';
+        },
+
         onChangeHeroSelection: function (selection) {
             var items = this.availableHeros.getSelectedItems();
             if ((items.length == 1) && this.isCurrentPlayerActive()) {
@@ -215,7 +217,6 @@ function (dojo, declare) {
         },       
 
         onHeroSelect: function () {
-            debugger;
             if (this.checkAction('chooseHero')) {
                 var items = this.availableHeros.getSelectedItems();
                 var hero = items[0]['id'];
@@ -318,25 +319,55 @@ function (dojo, declare) {
 
         onZoomLevelChange: function(event) {
             console.log(event.target.value);
-            document.getElementById('mapImage').style.transform = 'scale(' + (event.target.value) / 100 + ')';
+            document.getElementById('mapImage').style.transform = this.getScaleTransformForToken(event.target);
         },
 
         onTokenSelected: function (event) {
-            debugger;
             dojo.toggleClass(event.target, 'tokenSelected');
         },
 
-        onHenchmanPlacementClick: function (event) {
+        onTokenClick: function (event) {
+            // TODO : unselect all tokens
+
             dojo.toggleClass(event.target, 'tokenSelected');
 
             if (event.target.classList.contains('tokenSelected')) {
-                debugger;
                 var heroArea = this.findHeroArea();
                 this.highlightSameColor(heroArea);
             }
             else {
                 this.removeAreaHighlights();
             }
+        },
+
+        onAreaClick: function (event) {
+            debugger;
+            var selectedToken = dojo.query('.tokenSelected');
+
+            if (selectedToken.length < 1)
+                return;
+
+            //var transform = this.getScaleTransformForToken(dojo.query('#zoomLevel')[0]);
+
+            // var animation = new dojo.Animation({
+            //     onAnimate: function (v) {
+            //         selectedToken.style[transform] = transform;
+            //     }
+            // }).play();
+
+            // if (selectedToken.length == 1) {
+            //     var anim = this.slideToObject( selectedToken[0], event.target);
+                
+            //     anim.play();
+            // }
+
+            dojo.place(selectedToken[0], event.target);
+            selectedToken.removeClass('tokenSelected');
+            this.removeAreaHighlights();
+        },
+
+        onDragStartHandler: function (event) {
+            event.dataTransfer.setData("text/plain", event.target.id);
         },
 
         ///////////////////////////////////////////////////
@@ -442,7 +473,6 @@ function (dojo, declare) {
 
         notif_heroSelected: function( notif ) 
         {
-            debugger;
             console.log( 'notif_heroSelected' );
             console.log( notif );
 
@@ -452,8 +482,6 @@ function (dojo, declare) {
 
         notif_cardsReceived: function( notif ) 
         {
-            debugger;
-
             document.getElementById('availableHeros').style.display = 'none';
             document.getElementById('mainGame').style.display = 'block';
 
@@ -466,7 +494,6 @@ function (dojo, declare) {
 
         notif_placeTokens: function( notif )
         {
-            debugger;
             console.log( 'notif_placeTokens' );
             console.log( notif.args.tokensPlacement );
 
@@ -475,7 +502,6 @@ function (dojo, declare) {
 
         notif_placeSidekicks: function( notif )
         {
-            debugger;
             this.playerHero = notif.args.playerHero;
             console.log( 'notif_placeTokens' );
             console.log( notif.args.tokensPlacement );

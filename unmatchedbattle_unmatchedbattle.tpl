@@ -78,7 +78,7 @@
 
 // Javascript HTML templates
 
-var jstpl_token='<div class="selectionCircle"><div id="${internalId}" class="token ${tokenType}"></div></div>';
+var jstpl_token='<div id="${internalId}" class="token ${tokenType}" draggable="true"></div>';
 
 /*
 // Example:
