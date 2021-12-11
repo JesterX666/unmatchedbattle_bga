@@ -167,7 +167,7 @@ function (dojo, declare) {
 
                 var placementObj = dojo.place( sideKickPoolItem, 'sidekicksPool' );
                 var tokenObj = dojo.place( token, placementObj );
-                
+
                 dojo.connect(tokenObj, 'onclick', this, 'onTokenClick');
             });
         },
@@ -191,10 +191,13 @@ function (dojo, declare) {
             var colors = area.getAttribute('data-colors');
 
             colors.split(',').forEach(color => {
-                // Highlight all areas with same color
+                // Highlight all areas with same color that doesn't have a token
                 var areas = document.querySelectorAll('[data-colors*="' + color + '"]');
+
                 areas.forEach(area => {
-                    area.classList.add('selectionCircleSelected');
+                    if (area.querySelector('.token') == null) {
+                        area.classList.add('selectionCircleSelected');
+                    }
                 });
             });
         },
@@ -345,6 +348,8 @@ function (dojo, declare) {
             else {
                 this.removeAreaHighlights();
             }
+            
+            event.cancelBubble = true;
         },
 
         onAreaClick: function (event) {
