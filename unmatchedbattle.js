@@ -337,10 +337,15 @@ function (dojo, declare) {
         },
 
         onTokenClick: function (event) {
-            // TODO : unselect all tokens
+            var selected = event.target.classList.contains('tokenSelected');
 
-            dojo.toggleClass(event.target, 'tokenSelected');
+            document.querySelectorAll('.tokenSelected').forEach(token => {
+                token.classList.remove('tokenSelected');
+            });
 
+            if (!selected)
+                event.target.classList.add('tokenSelected');
+            
             if (event.target.classList.contains('tokenSelected')) {
                 var heroArea = this.findHeroArea();
                 this.highlightSameColor(heroArea);
@@ -358,6 +363,11 @@ function (dojo, declare) {
 
             if (selectedToken.length < 1)
                 return;
+
+            if (!event.target.classList.contains('selectionCircleSelected')) {
+                this.showMessage( "Invalid Placement", "error" );
+                return;
+            }
 
             //var transform = this.getScaleTransformForToken(dojo.query('#zoomLevel')[0]);
 
