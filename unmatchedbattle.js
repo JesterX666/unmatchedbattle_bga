@@ -159,9 +159,16 @@ function (dojo, declare) {
         },
 
         placeSidekicksInPool: function (sidekicks) {
+            debugger;
+
             Object.values(sidekicks).forEach(sidekick => {
-                var obj = dojo.place( this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} ) , 'sidekicksPool' );
-                dojo.connect(obj, 'onclick', this, 'onTokenClick');
+                var sideKickPoolItem = this.format_block('jstpl_sidekickPoolItem', {'sidekickPoolItemId' : 'placement_' + sidekick['internal_id']});
+                var token =  this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} );
+
+                var placementObj = dojo.place( sideKickPoolItem, 'sidekicksPool' );
+                var tokenObj = dojo.place( token, placementObj );
+                
+                dojo.connect(tokenObj, 'onclick', this, 'onTokenClick');
             });
         },
 
