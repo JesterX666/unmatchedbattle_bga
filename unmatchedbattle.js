@@ -338,6 +338,9 @@ function (dojo, declare) {
         },
 
         onTokenClick: function (event) {
+            if (!this.isCurrentPlayerActive())
+                return;
+                
             var selected = event.target.classList.contains('tokenSelected');
 
             document.querySelectorAll('.tokenSelected').forEach(token => {
@@ -387,10 +390,25 @@ function (dojo, declare) {
             dojo.place(selectedToken[0], event.target);
             selectedToken.removeClass('tokenSelected');
             this.removeAreaHighlights();
+            
+            if (document.querySelectorAll(".sidekickPoolItem > .token").length == 0) {
+                var sidekicksArea = document.getElementById('sidekicks');
+                
+                if (sidekicksArea != undefined) {
+                    sidekicksArea.style.display = "none";
+                }
+
+                if (!document.getElementById('sidekickPlacementConfirm')) {
+                    this.addActionButton( 'sidekickPlacementConfirm', _('Confirm'), 'onSidekickPlacementDone' ); 
+                }
+            }
         },
 
         onDragStartHandler: function (event) {
             event.dataTransfer.setData("text/plain", event.target.id);
+        },
+
+        onSidekickPlacementDone: function () {
         },
 
         ///////////////////////////////////////////////////

@@ -33,18 +33,8 @@
     <div id="mainGame">
         <!-- BEGIN player -->
 	        <div id="myhand_wrap" class="whiteblock">
-        		<h3>{MY_HAND}</h3>
 	        	<div id="myhand"></div>
     	    </div>
-
-            <div id="playerHelper" style="border: 1px solid black">
-                <a href="#" id="playerHelperToggle" class="expandabletoggle expandablearrow">
-                    <div class="icon20"></div>
-                </a>
-                <div id="my_hidden_content" class="expandablecontent">
-                    Here's the hidden content
-                </div>
-            </div>
         <!-- END player -->
 
         <!-- BEGIN sidekicks -->
