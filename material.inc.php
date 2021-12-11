@@ -271,7 +271,6 @@ $this->heros = array(
         ),
     ),
     "Arthur" => array(
-        "name" => "Arthur",
         "sidekicks" => array(
             1 => array(
                 "name" => "Merlin",
@@ -280,7 +279,6 @@ $this->heros = array(
         ),
     ),
     "Medusa" => array(
-        "name" => "Medusa",
         "sidekicks" => array(
             1 => array(
                 "name" => "Harpy",
@@ -297,7 +295,6 @@ $this->heros = array(
         ),
     ),
     "Sinbad" => array(
-        "name" => "Sinbad",
         "sidekicks" => array(
             1 => array(
                 "name" => "Porter",

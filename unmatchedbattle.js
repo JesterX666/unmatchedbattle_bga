@@ -84,7 +84,8 @@ function (dojo, declare) {
             console.log( "Ending game setup" );
         },
 
-        setupChooseHero: function (gamedatas) {            
+        setupChooseHero: function (gamedatas) {
+            debugger;
             // List of available heros
             this.availableHeros = new ebg.stock();
             this.availableHeros.create( this, $('availableHeros'), this.cardwidth, this.cardheight );
@@ -100,7 +101,7 @@ function (dojo, declare) {
             // Adding all available heros to the stock, with their image
             Object.values(gamedatas.availableHeros).forEach(hero => {
                     // We find the card back image from the list of all cards
-                    var card = Object.values(gamedatas.cardtypes).find(card => card['deck'] == hero['name'] && 
+                    var card = Object.values(gamedatas.cardtypes).find(card => card['deck'] == hero && 
                                                                                card['type'] == 'back');
                     
                     if (card) {
@@ -108,7 +109,7 @@ function (dojo, declare) {
                         this.availableHeros.addItemType(type, 0, g_gamethemeurl + 'img/Cards/' + card['image']);
 
                         // We add the card to the stock
-                        this.availableHeros.addToStockWithId(type, hero['name']);
+                        this.availableHeros.addToStockWithId(type, hero);
                     }
 
                     type++;

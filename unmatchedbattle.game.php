@@ -558,11 +558,11 @@ class UnmatchedBattle extends Table
         self::debug("Heroes in the DB: ".implode(', ', $databaseHeroesNames));
 
         // Loop on each available heros and add only those who are not choosed
-        foreach ($this->heros as $hero) {
-            self::debug("Checking hero ".key($hero));
+        foreach ($this->heros as $heroKey => $hero) {
+            self::debug("Checking hero ".$heroKey);
 
-            if (!in_array(key($hero), array_column($result, 'hero'))) {
-                $remainingHeroes[] = $hero;
+            if (!in_array($heroKey, array_column($result, 'hero'))) {
+                $remainingHeroes[] = $heroKey;
             }
         }
 
