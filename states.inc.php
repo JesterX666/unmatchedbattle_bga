@@ -64,12 +64,12 @@ $machinestates = array(
     // Note: ID=2 => your first state
 
     2 => array(
-    		"name" => "chooseHero",
-    		"description" => clienttranslate('${actplayer} must choose his hero'),
-    		"descriptionmyturn" => clienttranslate('${you} must choose your hero'),
-    		"type" => "activeplayer",
-    		"possibleactions" => array( "chooseHero" ),
-    		"transitions" => array( "chooseHeroNextPlayer" => 3 )
+    	"name" => "chooseHero",
+    	"description" => clienttranslate('${actplayer} must choose his hero'),
+    	"descriptionmyturn" => clienttranslate('${you} must choose your hero'),
+    	"type" => "activeplayer",
+    	"possibleactions" => array( "chooseHero" ),
+    	"transitions" => array( "chooseHeroNextPlayer" => 3 )
     ),
 
     3 => array(
@@ -81,11 +81,11 @@ $machinestates = array(
     ), 
     
 	4 => array(
-    		"name" => "distributeCards",
-    		"description" => clienttranslate('Distributing starting hands'),
-    		"type" => "game",
-            "action" => "distributeCards",
-    		"transitions" => array( "placeHero" => 5 )
+    	"name" => "distributeCards",
+    	"description" => clienttranslate('Distributing starting hands'),
+    	"type" => "game",
+        "action" => "distributeCards",
+    	"transitions" => array( "placeHero" => 5 )
     ),
 
     5 => array(
@@ -110,7 +110,15 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must place your sidekicks in the same zone as your hero'),
         "type" => "activeplayer",
         "possibleactions" => array( "placeSidekicks" ),
-        "transitions" => array( "placeHero" => 99 )
+        "transitions" => array( "placeSidekicksNextPlayer" => 8 ),
+
+    8 => array(
+        "name" => "placeSidekicksNextPlayer",
+        "description" => "",
+        "type" => "game",
+        "action" => "checkEveryonePlacedSidekicks",
+        "transitions" => array( "placeSidekicks" => 7, "startGame" => 99 )
+    )
 ),
 /*
     Examples:

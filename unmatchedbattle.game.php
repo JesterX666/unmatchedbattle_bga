@@ -148,6 +148,7 @@ class UnmatchedBattle extends Table
             case 'placeHeroStartingArea':
             case 'assignSidekicks':                
             case 'placeSidekicks':
+            case 'placeSidekicksNextPlayer':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
@@ -156,11 +157,9 @@ class UnmatchedBattle extends Table
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($currentPlayerId), 'type_arg');
                 $result['tokensPlacement'] = $this->getTokensPlacement();
 
-                $heroObject = $this->heros[$hero];
+                self::debug("Tokens Placement : ".json_encode($result['tokensPlacement']));
 
-                self::debug("HERO OBJECT : ".json_encode($heroObject));
-
-                $result['playerSidekicks'] = $heroObject['sidekicks'];
+                $result['playerSidekicks'] = $this->getHeroSidekicks($hero);
                 $result['playerHero'] = $hero;
 
                 //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
@@ -269,7 +268,25 @@ class UnmatchedBattle extends Table
     {
         if ($this->validateSidekicksPlacement($sidekicksPlacement))
         {
+            self::debug("Sidekick placement: ".json_encode($sidekicksPlacement));
 
+            $tokens = array();
+
+            foreach($sidekicksPlacement as $sidekick => $sidekickPlacement)
+            {            
+                $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$sidekickPlacement['sidekick']."', ".$sidekickPlacement['area_id'].")";
+                self::DbQuery( $sql );
+
+                $tokenId = $sidekickPlacement['sidekick'];
+
+                $tokens[] = array('area_id' => $sidekickPlacement['area_id'], 'token_id' => $tokenId, 'token_type' => $this->getTokenType($tokenId));
+            }
+
+            self::notifyAllPlayers( "sidekicksPlacementDone", clienttranslate( '${player_name} placed his sidekicks' ), array(
+                'player_id' => self::getActivePlayerId(),
+                'player_name' => self::getActivePlayerName(),
+                'sidekicksPlacement' => $tokens
+            ) );
         }
     }
 
@@ -377,6 +394,41 @@ class UnmatchedBattle extends Table
         }
     }
 
+    function checkEveryonePlacedSidekicks()
+    {
+        self::debug("---- Check everyone placed sidekicks ----");
+
+        $sql = "SELECT player_id id, hero FROM player";
+        $playerHero = self::getCollectionFromDb( $sql );
+
+        // Compose a list of all sidekicks
+        $sidekicks = array();
+
+        foreach ($playerHero as $player)
+        {
+            $sidekicks = array_merge($sidekicks, array_column($this->heros[$player['hero']]['sidekicks'], 'internal_id'));
+        }
+
+        self::debug("Sidekicks : ".json_encode($sidekicks));
+
+        // Check if all sidekicks are placed
+        $sql = "SELECT token_name FROM tokens";
+        $sidekicksPlaced = self::getCollectionFromDb( $sql );
+
+        self::debug("Sidekicks placed : ".json_encode($sidekicksPlaced));
+
+        if (count(array_diff($sidekicks, $sidekicksPlaced)) == 0)
+        {
+            self::debug("Everyone placed their sidekicks");
+            $this->gamestate->nextState( 'everyonePlacedSidekicks' );
+        }
+        else
+        {
+            $this->activeNextPlayer();
+            $this->gamestate->nextState( 'placeSidekicks' );
+        }
+    }
+
     function placeHeroStartingArea()
     {
         // Get all players
@@ -410,12 +462,12 @@ class UnmatchedBattle extends Table
             }                            
         }
 
-        $this->notifyTokensPlacement();
+        $this->notifyHerosPlacement();
 
         $this->gamestate->nextState( 'assignSidekicks' );
     }
 
-    function notifyTokensPlacement()
+    function notifyHerosPlacement()
     {
         self::notifyAllPlayers( "placeTokens", clienttranslate( 'All heros are placed in their starting area' ),
         array ('tokensPlacement' => $this->getTokensPlacement()));
@@ -438,7 +490,8 @@ class UnmatchedBattle extends Table
     // Notify a player about which sidekicks he has to place
     function notifySidekicksPlacement($player_id, $hero)
     {
-        $sidekicks= $this->heros[$hero]['sidekicks'];
+        $sidekicks= $this->getHeroSidekicks($hero);
+
         self::debug("Assigning sidekick: ".json_encode($sidekicks));
 
         self::notifyPlayer($player_id, "placeSidekicks", "", array(
@@ -491,12 +544,70 @@ class UnmatchedBattle extends Table
         $this->gamestate->nextState( 'placeHero' );
     }
 
+    function getHeroSidekicks($hero)
+    {
+        $heroObject = $this->heros[$hero];
+        $sidekicks = array();
+
+        foreach($heroObject['sidekicks'] as $sidekick)
+        {
+            $sidekicks[] = array('area_id' => '', 'token_id' => $sidekick['internal_id'], 'token_type' => $sidekick['name']);
+        }
+
+        self::debug("Hero Sidekicks to place : ".json_encode($sidekicks));
+
+        return $sidekicks;
+    }
+
     function getTokensPlacement()
     {
         $sql = "SELECT area_id, token_name FROM tokens";
-        $result = self::getCollectionFromDb( $sql );
+        $tokensFromDB = self::getCollectionFromDb( $sql );
         
-        return $result;
+        $tokens = array();
+
+        foreach ($tokensFromDB as $token)
+        {
+            $area = $token['area_id'];
+            $tokenId = $token['token_name'];
+            $tokenType = $this->getTokenType($tokenId);
+            $tokens[] = array('area_id' => $area, 'token_id' => $tokenId, 'token_type' => $tokenType);
+        }
+
+        self::debug("Tokens: ".json_encode($tokens));
+        return $tokens;
+    }
+
+    function getTokenType($token_name)
+    {
+        // Checks if the token_name contains a _ which would mean a sidekick
+        $separator = strpos($token_name, "_");
+        $tokenId = $token_name;
+        $tokenType = "";
+
+        if ($separator !== false)
+        {
+            $hero = substr($token_name, 0, $separator);
+            self::debug("Sidekick for Hero: ".$hero);
+
+            $sidekick = array_filter($this->heros[$hero]['sidekicks'], function($sidekick) use ($hero)                 
+            {
+                self::debug("Sidekick internal_id: ".$sidekick['internal_id']);
+                return substr($sidekick['internal_id'], 0, strpos($sidekick['internal_id'], '_')) == $hero;
+            });
+
+            self::debug("Sidekick: ".json_encode($sidekick));
+
+            $tokenType = $this->heros[$hero]['sidekicks'][array_key_first($sidekick)]['name'];
+
+            self::debug("Sidekick: ".$tokenType);
+        }
+        else
+        {
+            $tokenType = $tokenId;
+        }
+
+        return $tokenType;
     }
     
 //////////////////////////////////////////////////////////////////////////////

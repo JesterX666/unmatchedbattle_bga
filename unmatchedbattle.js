@@ -74,11 +74,11 @@ function (dojo, declare) {
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
-            dojo.connect(this.zoomLevel, "onchange", this, 'onZoomLevelChange');
-            dojo.connect(null, "ondragstart", this, 'onDragStartHandler');
+            this.connect(this.zoomLevel, "onchange", 'onZoomLevelChange');
+            this.connect(null, "ondragstart", 'onDragStartHandler');
 
             dojo.query('.selectionCircle').forEach(function (selectionCircle) {
-                dojo.connect(selectionCircle, 'onclick', this, 'onAreaClick');
+                this.connect(selectionCircle, 'onclick', 'onAreaClick');
             }, this);
 
             console.log( "Ending game setup" );
@@ -92,7 +92,7 @@ function (dojo, declare) {
             this.availableHeros.setSelectionMode(1);
             this.availableHeros.extraClasses = "cardContains";
             
-            dojo.connect (this.availableHeros, 'onChangeSelection', this, 'onChangeHeroSelection');
+            this.connect (this.availableHeros, 'onChangeSelection', 'onChangeHeroSelection');
 
             // Specify that there are 4 heros per row in the CSS sprite image
             this.availableHeros.image_items_per_row = 4;
@@ -150,27 +150,33 @@ function (dojo, declare) {
             });            
         },
 
+        createToken: function (token, area) {
+            debugger;
+            var tokenBlock =  this.format_block( 'jstpl_token', {internalId: token['token_id'], tokenType: 'token' + token['token_type']} );
+            var tokenElement = dojo.place(tokenBlock, area);
+            this.connect(tokenElement, 'onclick', 'onTokenClick');
+        },
+
         placeTokens: function (tokensPlacement) {
+            console.log(tokensPlacement);
+            debugger;
             this.tokensPlacement = tokensPlacement;
 
             Object.values(tokensPlacement).forEach(token => {
                 var area = this.getAreaById(token['area_id']);
-                dojo.create("div", { class: "token token" + token.token_name }, area);
-            });
+                this.createToken(token, area);
+            }, this);
         },
 
         placeSidekicksInPool: function (sidekicks) {
+            debugger;
             this.sidekicks = sidekicks;
 
             Object.values(sidekicks).forEach(sidekick => {
-                var sideKickPoolItem = this.format_block('jstpl_sidekickPoolItem', {'sidekickPoolItemId' : 'placement_' + sidekick['internal_id']});
-                var token =  this.format_block( 'jstpl_token', {internalId: sidekick['internal_id'], tokenType: 'token' + sidekick['name']} );
-
+                var sideKickPoolItem = this.format_block('jstpl_sidekickPoolItem', {'sidekickPoolItemId' : 'placement_' + sidekick['token_id']});
                 var placementObj = dojo.place( sideKickPoolItem, 'sidekicksPool' );
-                var tokenObj = dojo.place( token, placementObj );
-
-                dojo.connect(tokenObj, 'onclick', this, 'onTokenClick');
-            });
+                this.createToken(sidekick, placementObj);
+            }, this);
         },
 
         getAreaById: function (areaId) {
@@ -179,7 +185,7 @@ function (dojo, declare) {
 
         // Find the area where the hero token is placed
         findHeroArea: function () {
-            var heroPlacement = Object.values(this.tokensPlacement).find(token => token.token_name == this.playerHero);
+            var heroPlacement = Object.values(this.tokensPlacement).find(token => token.token_id == this.playerHero);
             return heroPlacement['area_id'];
         },
 
@@ -244,8 +250,8 @@ function (dojo, declare) {
                 var sidekicksPlacement = [];
 
                 Object.values(this.sidekicks).forEach(sidekick => {
-                    var sidekickPlacement = document.getElementById(sidekick['internal_id']);
-                    var sidekickPlacementItem = { 'sidekick': sidekick['internal_id'], 'area_id': sidekickPlacement.parentElement.id.split('_')[1] };
+                    var sidekickPlacement = document.getElementById(sidekick['token_id']);
+                    var sidekickPlacementItem = { 'sidekick': sidekick['token_id'], 'area_id': sidekickPlacement.parentElement.id.split('_')[1] };
                     sidekicksPlacement.push(sidekickPlacementItem);
                 });
 
@@ -507,6 +513,7 @@ function (dojo, declare) {
             dojo.subscribe( 'cardsReceived', this, "notif_cardsReceived" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'placeSidekicks', this, "notif_placeSidekicks" );
+            dojo.subscribe( 'sidekicksPlacementDone', this, "notif_sidekicksPlacement" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -560,7 +567,16 @@ function (dojo, declare) {
             debugger;
             this.playerHero = notif.args.playerHero;
             this.placeSidekicksInPool(notif.args.sidekicks);
-        }
+        },
+        
+        notif_sidekicksPlacement: function( notif )
+        {
+            console.log( 'notif_sidekicksPlacement' );
+            console.log( notif );
 
+            if (notif.args.player_id != this.player_id) {
+                this.placeTokens(notif.args.sidekicksPlacement);
+            }
+        }
    });             
 });
