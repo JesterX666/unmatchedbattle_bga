@@ -133,16 +133,8 @@ class UnmatchedBattle extends Table
     {
         $result = array();
     
-        $current_player_id = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
-    
-        // Get information about players
-        $sql = "SELECT player_id id, player_score score, hero FROM player ";
-        $result['players'] = self::getCollectionFromDb( $sql );
-  
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
-
-        $hero = $result['players'][$current_player_id]['hero'];
-        self::debug("getAllData HERO : ".$hero);
+        $currentPlayerId = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
+        $hero = $this->getCurrentPlayerHero($currentPlayerId);
 
         $state = $this->gamestate->state();
         switch($state['name'])
@@ -161,7 +153,7 @@ class UnmatchedBattle extends Table
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
                 });
             
-                $result['playerHand'] = array_column($this->cards->getPlayerHand($current_player_id), 'type_arg');
+                $result['playerHand'] = array_column($this->cards->getPlayerHand($currentPlayerId), 'type_arg');
                 $result['tokensPlacement'] = $this->getTokensPlacement();
 
                 $heroObject = $this->heros[$hero];
@@ -273,6 +265,101 @@ class UnmatchedBattle extends Table
         $this->gamestate->nextState( 'chooseHeroNextPlayer' );
     }
 
+    function sidekickPlacementDone($sidekicksPlacement)
+    {
+        if ($this->validateSidekicksPlacement($sidekicksPlacement))
+        {
+
+        }
+    }
+
+    function validateSidekicksPlacement($sidekicksPlacement)
+    {
+        $boardId = $this->getGameStateValue('boardId');
+        $board = $this->boards[$boardId];
+        $zones = $board['zones'];
+
+        $currentPlayerHero = $this->getCurrentPlayerHero(self::getCurrentPlayerId());
+        $sidekicks = array_column($this->heros[$currentPlayerHero]['sidekicks'], 'internal_id');
+        self::debug("Sidekicks : ".json_encode($sidekicks));
+        
+        $playerNo = $this->getPlayerNoById(self::getCurrentPlayerId());
+        self::debug("PlayerNo : ".$playerNo);
+        
+        $startingArea = array_filter($zones, function($zone) use ($playerNo) 
+        {
+            return $zone['startingPlayer'] == $playerNo;
+        });
+
+        if (count($startingArea) != 1)
+        {
+            throw new feException("Starting Area not found for player: ".$playerNo);
+        }
+
+        self::debug("Starting area : ".json_encode($startingArea));
+
+        $availableZones = $this->getZonesSameColors($startingArea[array_key_first($startingArea)]['colors'], array(array_key_first($startingArea)));
+        self::debug("Available Zones : ".json_encode($availableZones));
+
+        foreach ($sidekicksPlacement as $sidekickPlacement)
+        {
+            // Is the sidekick in the correct starting area ?
+            if(!key_exists($sidekickPlacement['area_id'], $availableZones))
+            {
+                throw new feException("Invalid zone: ".$sidekickPlacement['area_id']);
+            }
+
+            self::debug("Sidekick placement : ".json_encode($sidekickPlacement));
+
+            // Is the sidekick in the correct player sidekick pool?
+            if(!in_array($sidekickPlacement['sidekick'], $sidekicks))
+            {
+                throw new feException("Invalid sidekick: ".$sidekickPlacement['sidekick']);
+            }
+        }
+
+        // Are all sidekicks assigned only once ?
+        $sidekickPlacement = array_column($sidekicksPlacement, 'sidekick');
+        if (count(array_unique($sidekickPlacement)) != count($sidekickPlacement))
+        {
+            throw new feException("Duplicate sidekicks");
+        }
+
+        // Are all sidekick placed ?
+        if (count($sidekicksPlacement) != count($sidekicks))
+        {
+            throw new feException("Missing sidekicks");
+        }
+
+        return true;
+    }
+
+    function getZonesSameColors($colors, $excludedZones)
+    {
+        $boardId = $this->getGameStateValue('boardId');
+        $board = $this->boards[$boardId];
+        $zones = $board['zones'];
+
+        $availableZones = array_filter($zones, function($zone) use ($colors) 
+        {
+            return count(array_intersect($zone['colors'], $colors)) > 0;
+        });
+
+        self::debug("Excluded Zones : ".json_encode($excludedZones));
+        self::debug("Available Zones : ".json_encode($availableZones));
+
+        // Remove any excluded zones
+        if (count($excludedZones) > 0)
+        {
+            $availableZones = array_filter($availableZones, function($zoneKey) use ($excludedZones) 
+            {
+                self::debug("Zone key : ".$zoneKey);
+                return !in_array($zoneKey, $excludedZones);
+            }, ARRAY_FILTER_USE_KEY);
+        }
+
+        return $availableZones;
+    }
 
     // Verifies if every player has choosen a hero
     function checkEveryoneChoosedHero()
@@ -541,7 +628,20 @@ class UnmatchedBattle extends Table
 //        // Please add your future database scheme changes here
 //
 //
-    }    
+    }
+
+    protected function getCurrentPlayerHero($currentPlayerId)
+    {   
+        // Get information about players
+        $sql = "SELECT player_id id, player_score score, hero FROM player ";
+        $result['players'] = self::getCollectionFromDb( $sql );
+  
+        // TODO: Gather all information about current game situation (visible by player $current_player_id).
+
+        $hero = $result['players'][$currentPlayerId]['hero'];
+        
+        return $hero;
+    }
 
     // Returns the list of available heros for choosing
     protected function getAvailableHeros()

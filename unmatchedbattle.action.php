@@ -47,7 +47,39 @@
         $hero = self::getArg( "hero", AT_alphanum, true );
         $this->game->chooseHero($hero);
 
-        self::ajaxResponse( );
+        self::ajaxResponse( );        
+    }
+
+    public function sidekickPlacementDone()
+    {
+        self::setAjaxMode();     
+        $sidekicksPlacement = self::getArg( "sidekicksPlacement", AT_json, true );
+
+        // Sanitizes the input
+        $this->validateJSonAlphaNum($sidekicksPlacement, "sidekickPlacement");
+
+        $this->game->sidekickPlacementDone($sidekicksPlacement);
+
+        self::ajaxResponse( );        
+    }
+
+    public function validateJSonAlphaNum($value, $argName = 'unknown')
+    {
+      if (is_array($value)) {
+        foreach ($value as $key => $v) {
+          $this->validateJSonAlphaNum($key, $argName);
+          $this->validateJSonAlphaNum($v, $argName);
+        }
+        return true;
+      }
+      if (is_int($value)) {
+        return true;
+      }
+      $bValid = preg_match("/^[_0-9a-zA-Z- ]*$/", $value) === 1;
+      if (!$bValid) {
+        throw new feException("Bad value for: $argName", true, true, FEX_bad_input_argument);
+      }
+      return true;
     }
 
     /*

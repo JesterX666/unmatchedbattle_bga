@@ -160,7 +160,7 @@ function (dojo, declare) {
         },
 
         placeSidekicksInPool: function (sidekicks) {
-            debugger;
+            this.sidekicks = sidekicks;
 
             Object.values(sidekicks).forEach(sidekick => {
                 var sideKickPoolItem = this.format_block('jstpl_sidekickPoolItem', {'sidekickPoolItemId' : 'placement_' + sidekick['internal_id']});
@@ -234,6 +234,23 @@ function (dojo, declare) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/chooseHero.html', 
                                { 'lock': true, 'hero': hero }, this, 'onHeroSelectResponse');
 
+            }
+        },
+        
+        onSidekickPlacementDone: function () {
+            if (this.checkAction('placeSidekicks')) {
+                debugger;
+
+                var sidekicksPlacement = [];
+
+                Object.values(this.sidekicks).forEach(sidekick => {
+                    var sidekickPlacement = document.getElementById(sidekick['internal_id']);
+                    var sidekickPlacementItem = { 'sidekick': sidekick['internal_id'], 'area_id': sidekickPlacement.parentElement.id.split('_')[1] };
+                    sidekicksPlacement.push(sidekickPlacementItem);
+                });
+
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/sidekickPlacementDone.html', 
+                               { 'lock': true, 'sidekicksPlacement': JSON.stringify(sidekicksPlacement) }, this, 'onSidekickPlacementResponse');
             }
         },
 
@@ -340,7 +357,7 @@ function (dojo, declare) {
         onTokenClick: function (event) {
             if (!this.isCurrentPlayerActive())
                 return;
-                
+
             var selected = event.target.classList.contains('tokenSelected');
 
             document.querySelectorAll('.tokenSelected').forEach(token => {
@@ -406,9 +423,6 @@ function (dojo, declare) {
 
         onDragStartHandler: function (event) {
             event.dataTransfer.setData("text/plain", event.target.id);
-        },
-
-        onSidekickPlacementDone: function () {
         },
 
         ///////////////////////////////////////////////////
@@ -543,9 +557,9 @@ function (dojo, declare) {
 
         notif_placeSidekicks: function( notif )
         {
+            debugger;
             this.playerHero = notif.args.playerHero;
-            console.log( 'notif_placeTokens' );
-            console.log( notif.args.tokensPlacement );
+            this.placeSidekicksInPool(notif.args.sidekicks);
         }
 
    });             

@@ -109,7 +109,7 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must place his sidekicks'),
         "descriptionmyturn" => clienttranslate('${you} must place your sidekicks in the same zone as your hero'),
         "type" => "activeplayer",
-        "possibleactions" => array( "placeSidekick" ),
+        "possibleactions" => array( "placeSidekicks" ),
         "transitions" => array( "placeHero" => 99 )
 ),
 /*
