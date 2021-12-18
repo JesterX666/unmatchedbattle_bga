@@ -265,6 +265,10 @@ function (dojo, declare) {
             this.removeActionButtons();
         },
 
+        onSidekickPlacementResponse: function (data) {        
+            document.getElementById('sidekicks').style.display = 'none';
+        },
+
         ///////////////////////////////////////////////////
         //// Game & client states
         
@@ -361,6 +365,8 @@ function (dojo, declare) {
         },
 
         onTokenClick: function (event) {
+            debugger;
+            
             if (!this.isCurrentPlayerActive())
                 return;
 

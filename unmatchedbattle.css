@@ -80,6 +80,13 @@
     position: relative;
 }
 
+.mapSarpedon {
+    background-image: url('img/Sarpedon.jpg');
+    width: 2465px;
+    height: 1620px;
+    position: relative;
+}
+
 .cardContains {
     background-size: contain;
 }

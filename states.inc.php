@@ -110,7 +110,8 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must place your sidekicks in the same zone as your hero'),
         "type" => "activeplayer",
         "possibleactions" => array( "placeSidekicks" ),
-        "transitions" => array( "placeSidekicksNextPlayer" => 8 ),
+        "transitions" => array( "placeSidekicksNextPlayer" => 8 )
+    ),
 
     8 => array(
         "name" => "placeSidekicksNextPlayer",
@@ -118,8 +119,16 @@ $machinestates = array(
         "type" => "game",
         "action" => "checkEveryonePlacedSidekicks",
         "transitions" => array( "placeSidekicks" => 7, "startGame" => 99 )
-    )
-),
+    ),
+
+    9 => array(
+        "name" => "playAction",
+        "description" => clienttranslate('${actplayer} must play an action'),
+        "descriptionmyturn" => clienttranslate('${you} must play an action'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "playAction" ),
+        "transitions" => array( "playAction" => 99 )
+    ),
 /*
     Examples:
     

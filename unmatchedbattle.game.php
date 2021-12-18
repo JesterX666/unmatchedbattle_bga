@@ -116,6 +116,7 @@ class UnmatchedBattle extends Table
         }   
                
         // We save the board name in the game state
+        self::debug("Board ID : ".$boardId);
         self::setGameStateInitialValue( 'boardId', $boardId );
     }
 
@@ -287,6 +288,9 @@ class UnmatchedBattle extends Table
                 'player_name' => self::getActivePlayerName(),
                 'sidekicksPlacement' => $tokens
             ) );
+
+            // Check if it's the last player to place his sidekicks
+            $this->gamestate->nextState('placeSidekicksNextPlayer');
         }
     }
 
@@ -413,17 +417,29 @@ class UnmatchedBattle extends Table
 
         // Check if all sidekicks are placed
         $sql = "SELECT token_name FROM tokens";
-        $sidekicksPlaced = self::getCollectionFromDb( $sql );
+        $tokensPlaced = self::getCollectionFromDb( $sql );
 
-        self::debug("Sidekicks placed : ".json_encode($sidekicksPlaced));
+        self::debug("Tokens placed : ".json_encode($tokensPlaced));
 
-        if (count(array_diff($sidekicks, $sidekicksPlaced)) == 0)
+        $AllSidekicksPlaced = true;
+        foreach($sidekicks as $sidekick)
+        {
+            if(!array_key_exists($sidekick, $tokensPlaced))
+            {
+                self::debug("Sidekick not placed : ".$sidekick);
+                $AllSidekicksPlaced = false;
+                break;
+            }
+        }
+
+        if ($AllSidekicksPlaced)
         {
             self::debug("Everyone placed their sidekicks");
             $this->gamestate->nextState( 'everyonePlacedSidekicks' );
         }
         else
         {
+            self::debug("Not everyone placed their sidekicks");
             $this->activeNextPlayer();
             $this->gamestate->nextState( 'placeSidekicks' );
         }
@@ -441,12 +457,13 @@ class UnmatchedBattle extends Table
         $boardId = $this->getGameStateValue('boardId');
         $board = $this->boards[$boardId];
 
-        self::debug("Placing heros in their starting area");
+        self::debug("Placing heros in their starting area of board : ".$board['name']." (".$boardId.")");
                 
         // We loop on all players in order of play (player_no)
         foreach ($this->players as $player)
         {
             $playerHero = $playersHeros[$player['player_id']];
+            self::debug("Player id ".$player['player_id']." has hero ".$playerHero['hero']);
                             
             // We find the starting location of said hero           
             foreach($board['zones'] as $key => $zone)
@@ -469,8 +486,9 @@ class UnmatchedBattle extends Table
 
     function notifyHerosPlacement()
     {
-        self::notifyAllPlayers( "placeTokens", clienttranslate( 'All heros are placed in their starting area' ),
-        array ('tokensPlacement' => $this->getTokensPlacement()));
+        self::notifyAllPlayers( "placeTokens", 
+            clienttranslate( 'All heros are placed in their starting area' ),
+            array ('tokensPlacement' => $this->getTokensPlacement()));
     }
 
     // Assign sidekicks to each players
