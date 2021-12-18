@@ -96,7 +96,7 @@
           ) );
       }        
       
-      $this->page->insert_block( 'map', array( 'MAP_NAME' => 'map'.$current_board['name'] ));
+      $this->page->insert_block( 'map', array( 'MAP_NAME' => $current_board['name'] ));
 
         //jstpl_svgAreas
 
