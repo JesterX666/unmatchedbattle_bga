@@ -116,7 +116,7 @@ function (dojo, declare) {
             });        
         },
 
-        setupPlaceSidekicks: function (gamedatas) {            
+        setupPlaceSidekicks: function (gamedatas) {         
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
@@ -151,21 +151,50 @@ function (dojo, declare) {
         },
 
         createToken: function (token, area) {
-            debugger;
             var tokenBlock =  this.format_block( 'jstpl_token', {internalId: token['token_id'], tokenType: 'token' + token['token_type']} );
             var tokenElement = dojo.place(tokenBlock, area);
             this.connect(tokenElement, 'onclick', 'onTokenClick');
         },
 
-        placeTokens: function (tokensPlacement) {
-            console.log(tokensPlacement);
+        moveToken: function (token, newArea) {
             debugger;
-            this.tokensPlacement = tokensPlacement;
+            
+        },
 
-            Object.values(tokensPlacement).forEach(token => {
-                var area = this.getAreaById(token['area_id']);
-                this.createToken(token, area);
+        placeTokens: function (tokensPlacementNew) {
+            debugger;
+            console.log('New tokens placement: ' + tokensPlacementNew);
+
+            Object.values(tokensPlacementNew).forEach(token => {
+                debugger;
+
+                var existingToken = null;
+                if (this.tokensPlacement != null) {
+                    var existingToken = this.tokensPlacement.find(searchToken => { return searchToken['token_id'] == token['token_id']; });
+                }
+
+                if (existingToken == null) {
+                    var area = this.getAreaById(token['area_id']);
+                    this.createToken(token, area);
+                }
+                else {
+                    debugger;
+                    if (existingToken['area_id'] != token['area_id']) {
+                        this.moveToken(existingToken, token['area_id']);
+                    }
+                }
             }, this);
+
+            if (this.tokensPlacement != null) {
+                this.tokensPlacement.forEach(token => {
+                    debugger;
+                    if (!tokensPlacementNew.find(searchToken => { return searchToken['token_id'] == token['token_id']; })) {
+                        document.getElementById(token['token_id']).remove();
+                    }
+                });
+            }
+
+            this.tokensPlacement = tokensPlacementNew;
         },
 
         placeSidekicksInPool: function (sidekicks) {
@@ -366,7 +395,7 @@ function (dojo, declare) {
 
         onTokenClick: function (event) {
             debugger;
-            
+
             if (!this.isCurrentPlayerActive())
                 return;
 
