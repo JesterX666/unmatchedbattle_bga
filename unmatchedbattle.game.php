@@ -277,11 +277,9 @@ class UnmatchedBattle extends Table
             {            
                 $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$sidekickPlacement['sidekick']."', ".$sidekickPlacement['area_id'].")";
                 self::DbQuery( $sql );
-
-                $tokenId = $sidekickPlacement['sidekick'];
-
-                $tokens[] = array('area_id' => $sidekickPlacement['area_id'], 'token_id' => $tokenId, 'token_type' => $this->getTokenType($tokenId));
             }
+
+            $tokensPlacement = $this->getTokensPlacement();
 
             self::notifyAllPlayers( "sidekicksPlacementDone", clienttranslate( '${player_name} placed his sidekicks' ), array(
                 'player_id' => self::getActivePlayerId(),

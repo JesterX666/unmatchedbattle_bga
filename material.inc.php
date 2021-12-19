@@ -385,7 +385,7 @@
             20 => array(
                 'colors' => array( 4 ),
                 'x' => 645,
-                'y' => 791,
+                'y' => 788,
                 'startingPlayer' => 1,
                 'exits' => array( 8, 19, 21, 28 )
             ),
