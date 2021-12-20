@@ -118,7 +118,7 @@ $machinestates = array(
         "description" => "",
         "type" => "game",
         "action" => "checkEveryonePlacedSidekicks",
-        "transitions" => array( "placeSidekicks" => 7, "startGame" => 99 )
+        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
 
     9 => array(
@@ -127,8 +127,50 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play an action'),
         "type" => "activeplayer",
         "possibleactions" => array( "playAction" ),
-        "transitions" => array( "playAction" => 99 )
+        "transitions" => array( "playActionManeuver" => 10, "playActionScheme" => 11, "playActionAttack" => 12 )
     ),
+
+    10 => array(
+        "name" => "playActionManeuver",
+        "description" => clienttranslate('${actplayer} may move his fighters'),
+        "descriptionmyturn" => clienttranslate('${you} may move your fighters'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "playActionMove", "playActionMoveSkip" ),
+        "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )
+    ),
+
+    11 => array(
+        "name" => "playActionScheme",
+        "description" => "",
+        "type" => "game",
+        "action" => "checkEveryonePlacedSidekicks",
+        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+    ),
+    
+    12 => array(
+        "name" => "playActionAttack",
+        "description" => "",
+        "type" => "game",
+        "action" => "checkEveryonePlacedSidekicks",
+        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+    ),
+        
+    13 => array(
+        "name" => "playActionEnd",
+        "description" => "",
+        "type" => "game",
+        "action" => "checkEveryonePlacedSidekicks",
+        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+    ),
+            
+    14 => array(
+        "name" => "playActionMove",
+        "description" => "",
+        "type" => "game",
+        "action" => "checkEveryonePlacedSidekicks",
+        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+    ),
+
 /*
     Examples:
     

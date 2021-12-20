@@ -70,6 +70,9 @@ function (dojo, declare) {
                 case "placeSidekicks":
                     this.setupPlaceSidekicks(gamedatas);
                     break;
+                case "playAction":
+                    this.setupPlaceGame(gamedatas);
+                    break;
             }
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -117,12 +120,21 @@ function (dojo, declare) {
         },
 
         setupPlaceSidekicks: function (gamedatas) {         
+            // TODO : MERGE THIS WITH THE OTHER SETUP
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
             this.initializePlayerHand(gamedatas.playerHand);
             this.placeTokens(gamedatas.tokensPlacement);
             this.placeSidekicksInPool(gamedatas.playerSidekicks);
+        },
+
+        setupPlaceGame: function (gamedatas) {
+            console.log(gamedatas);
+            this.playerHero = gamedatas.playerHero;
+            this.initializeCardDeck(gamedatas.playerDeck);
+            this.initializePlayerHand(gamedatas.playerHand);
+            this.placeTokens(gamedatas.tokensPlacement);
         },
 
         initializeCardDeck: function (cards) {
@@ -158,7 +170,7 @@ function (dojo, declare) {
 
         moveToken: function (token, newArea) {
             debugger;
-            
+
         },
 
         placeTokens: function (tokensPlacementNew) {
@@ -248,6 +260,13 @@ function (dojo, declare) {
 
         getScaleTransformForToken(scaleSlider){
             return 'scale(' + (scaleSlider.value) / 100 + ')';
+        },
+
+        resetActionButtonsAction: function () {
+            this.removeActionButtons();
+            this.addActionButton( 'playActionManeuver', _('Maneuver'), 'onPlayActionManeuver' ); 
+            this.addActionButton( 'playActionScheme', _('Scheme'), 'onPlayActionScheme' ); 
+            this.addActionButton( 'playActionAttack', _('Attack'), 'onPlayActionAttack' ); 
         },
 
         onChangeHeroSelection: function (selection) {
@@ -358,6 +377,10 @@ function (dojo, declare) {
             {            
                 switch( stateName )
                 {
+                    case 'playAction':
+                        this.resetActionButtonsAction();
+                        break;
+        
 /*               
                  Example:
  
@@ -513,8 +536,25 @@ function (dojo, declare) {
         },        
         
         */
+        onPlayActionManeuver: function(evt) {
+            if (this.checkAction('playAction')) {
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionManeuverDrawCard.html', 
+                    { 'lock': true }, this );
+            }
+        },
 
-        
+        onPlayActionScheme:  function(evt) {
+            if (this.checkAction('playAction')) {
+
+            }
+        },
+
+        onPlayActionAttack: function(evt) {
+            if (this.checkAction('playAction')) {
+                
+            }
+        },
+
         ///////////////////////////////////////////////////
         //// Reaction to cometD notifications
 
@@ -549,6 +589,7 @@ function (dojo, declare) {
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'placeSidekicks', this, "notif_placeSidekicks" );
             dojo.subscribe( 'sidekicksPlacementDone', this, "notif_sidekicksPlacement" );
+            dojo.subscribe( 'performManeuverDrawResult', this, "notif_performManeuverDrawResult" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -610,8 +651,17 @@ function (dojo, declare) {
             console.log( notif );
 
             if (notif.args.player_id != this.player_id) {
-                this.placeTokens(notif.args.sidekicksPlacement);
+                this.placeTokens(notif.args.tokensPlacement);
             }
+        },
+        
+        notif_performManeuverDrawResult: function( notif )
+        {
+            debugger;
+            console.log( 'notif_performManeuverDrawResult' );
+            console.log( notif );
+
+            this.initializePlayerHand(notif.args.playerHand);
         }
    });             
 });

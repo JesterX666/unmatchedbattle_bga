@@ -137,6 +137,8 @@ class UnmatchedBattle extends Table
         $currentPlayerId = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
         $hero = $this->getCurrentPlayerHero($currentPlayerId);
 
+        self::debug("State : ".$this->gamestate->state()['name']);
+
         $state = $this->gamestate->state();
         switch($state['name'])
         {
@@ -150,6 +152,7 @@ class UnmatchedBattle extends Table
             case 'assignSidekicks':                
             case 'placeSidekicks':
             case 'placeSidekicksNextPlayer':
+            case 'playAction':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
@@ -267,11 +270,11 @@ class UnmatchedBattle extends Table
 
     function sidekickPlacementDone($sidekicksPlacement)
     {
+        self::checkAction('placeSidekicks');
+
         if ($this->validateSidekicksPlacement($sidekicksPlacement))
         {
             self::debug("Sidekick placement: ".json_encode($sidekicksPlacement));
-
-            $tokens = array();
 
             foreach($sidekicksPlacement as $sidekick => $sidekickPlacement)
             {            
@@ -284,7 +287,7 @@ class UnmatchedBattle extends Table
             self::notifyAllPlayers( "sidekicksPlacementDone", clienttranslate( '${player_name} placed his sidekicks' ), array(
                 'player_id' => self::getActivePlayerId(),
                 'player_name' => self::getActivePlayerName(),
-                'sidekicksPlacement' => $tokens
+                'tokensPlacement' => $tokensPlacement
             ) );
 
             // Check if it's the last player to place his sidekicks
@@ -351,6 +354,27 @@ class UnmatchedBattle extends Table
         }
 
         return true;
+    }
+
+    function playActionManeuverDrawCard()
+    {
+        self::checkAction('playAction');
+
+        $playerId = self::getActivePlayerId();
+        $hero = $this->getCurrentPlayerHero($playerId);
+
+        // draw a card
+        $this->cards->pickCard('deck_'.$hero, $playerId);	
+        $playerHand = array_column($this->cards->getPlayerHand($playerId), 'type_arg');
+
+        self::notifyAllPlayers( "performManeuverDrawResult", clienttranslate( '${player_name} performs a maneuver' ), array(
+            'player_id' => self::getActivePlayerId(),
+            'player_name' => self::getActivePlayerName(),
+            'playerHand' => $playerHand
+        ) );
+
+        // Check if it's the last player to place his sidekicks
+        $this->gamestate->nextState('playActionManeuver');
     }
 
     function getZonesSameColors($colors, $excludedZones)
@@ -433,7 +457,7 @@ class UnmatchedBattle extends Table
         if ($AllSidekicksPlaced)
         {
             self::debug("Everyone placed their sidekicks");
-            $this->gamestate->nextState( 'everyonePlacedSidekicks' );
+            $this->gamestate->nextState( 'playAction' );
         }
         else
         {
@@ -551,10 +575,10 @@ class UnmatchedBattle extends Table
             // Give 5 cards to the player
             $this->cards->pickCards(5, 'deck_'.$player['hero'], $player['player_id']);
 
-            $playerhand = array_column($this->cards->getPlayerHand($player['player_id']), 'type_arg');
+            $playerHand = array_column($this->cards->getPlayerHand($player['player_id']), 'type_arg');
 
             // Notify the player about the cards he received (and the definition of the cards in his deck)
-            self::notifyPlayer( $player['player_id'], 'cardsReceived', '', array ('playerhand' => $playerhand, 'cards' => $cardsofhero));
+            self::notifyPlayer( $player['player_id'], 'cardsReceived', '', array ('playerhand' => $playerHand, 'cards' => $cardsofhero));
         }
 
         $this->gamestate->nextState( 'placeHero' );

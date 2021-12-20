@@ -63,6 +63,13 @@
         self::ajaxResponse( );        
     }
 
+    public function playActionManeuverDrawCard()
+    {
+        self::setAjaxMode();     
+        $this->game->playActionManeuverDrawCard();
+        self::ajaxResponse( );        
+    }
+
     public function validateJSonAlphaNum($value, $argName = 'unknown')
     {
       if (is_array($value)) {
