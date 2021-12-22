@@ -101,6 +101,8 @@ class UnmatchedBattle extends Table
 
     protected function initTables()
     {        
+        self::debug("Init tables");
+
         // TODO: setup the initial game situation here
         if ($this->gamestate->table_globals[100] == 1)
         {
@@ -153,6 +155,7 @@ class UnmatchedBattle extends Table
             case 'placeSidekicks':
             case 'placeSidekicksNextPlayer':
             case 'playAction':
+            case 'playActionManeuver':
                 $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
                 {
                      return $obj['deck'] == $hero && $obj['type'] == 'card'; 
@@ -284,7 +287,7 @@ class UnmatchedBattle extends Table
 
             $tokensPlacement = $this->getTokensPlacement();
 
-            self::notifyAllPlayers( "sidekicksPlacementDone", clienttranslate( '${player_name} placed his sidekicks' ), array(
+            self::notifyAllPlayers( "placeTokens", clienttranslate( '${player_name} placed his sidekicks' ), array(
                 'player_id' => self::getActivePlayerId(),
                 'player_name' => self::getActivePlayerName(),
                 'tokensPlacement' => $tokensPlacement

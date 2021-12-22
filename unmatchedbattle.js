@@ -51,6 +51,7 @@ function (dojo, declare) {
         
         setup: function( gamedatas )
         {
+            debugger;
             console.log( "Starting game setup" );
             
             // Setting up player boards
@@ -71,6 +72,7 @@ function (dojo, declare) {
                     this.setupPlaceSidekicks(gamedatas);
                     break;
                 case "playAction":
+                case "playActionManeuver":
                     this.setupPlaceGame(gamedatas);
                     break;
             }
@@ -130,6 +132,7 @@ function (dojo, declare) {
         },
 
         setupPlaceGame: function (gamedatas) {
+            debugger;
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
@@ -155,7 +158,8 @@ function (dojo, declare) {
             //this.gameHelper.expand();       
         },
         
-        initializePlayerHand: function (playerhand) {
+        initializePlayerHand: function (playerhand) {        
+            debugger;    
             playerhand.forEach(card=> {
                 // We add the card to the stock
                 this.playerHand.addToStock(card);
@@ -173,40 +177,34 @@ function (dojo, declare) {
 
         },
 
-        placeTokens: function (tokensPlacementNew) {
+        placeTokens: function (tokensPlacement) {
             debugger;
-            console.log('New tokens placement: ' + tokensPlacementNew);
 
-            Object.values(tokensPlacementNew).forEach(token => {
+            console.log('New tokens placement: ' + tokensPlacement);
+
+            Object.values(tokensPlacement).forEach(token => {
                 debugger;
 
-                var existingToken = null;
-                if (this.tokensPlacement != null) {
-                    var existingToken = this.tokensPlacement.find(searchToken => { return searchToken['token_id'] == token['token_id']; });
-                }
+                var existingToken = document.querySelector('#' + token['token_id']);
 
                 if (existingToken == null) {
-                    var area = this.getAreaById(token['area_id']);
+                    var area = document.getElementById('area_' +token['area_id']);
                     this.createToken(token, area);
                 }
                 else {
                     debugger;
-                    if (existingToken['area_id'] != token['area_id']) {
+                    if (existingToken.parentElement.id != token['area_id']) {
                         this.moveToken(existingToken, token['area_id']);
                     }
                 }
             }, this);
 
-            if (this.tokensPlacement != null) {
-                this.tokensPlacement.forEach(token => {
-                    debugger;
-                    if (!tokensPlacementNew.find(searchToken => { return searchToken['token_id'] == token['token_id']; })) {
-                        document.getElementById(token['token_id']).remove();
-                    }
-                });
-            }
-
-            this.tokensPlacement = tokensPlacementNew;
+            document.querySelectorAll('.token').forEach(token => {
+                debugger;
+                if (!tokensPlacement.find(searchToken => { return searchToken['token_id'] == token.id; })) {
+                    token.remove();
+                }
+            });
         },
 
         placeSidekicksInPool: function (sidekicks) {
@@ -220,22 +218,17 @@ function (dojo, declare) {
             }, this);
         },
 
-        getAreaById: function (areaId) {
-            return document.getElementById('area_' + areaId);
-        },
-
         // Find the area where the hero token is placed
         findHeroArea: function () {
-            var heroPlacement = Object.values(this.tokensPlacement).find(token => token.token_id == this.playerHero);
-            return heroPlacement['area_id'];
+            var heroPlacement = document.querySelector('#' + this.playerHero);
+            return heroPlacement.parentElement;
         },
 
         // Will highlight all areas with same colors as the selected area
-        highlightSameColor: function(area_id) {
+        highlightSameColor: function(area) {
             // Remove the highlights of all areas
             this.removeAreaHighlights();
             
-            var area = this.getAreaById(area_id);
             var colors = area.getAttribute('data-colors');
 
             colors.split(',').forEach(color => {
@@ -432,8 +425,7 @@ function (dojo, declare) {
                 event.target.classList.add('tokenSelected');
             
             if (event.target.classList.contains('tokenSelected')) {
-                var heroArea = this.findHeroArea();
-                this.highlightSameColor(heroArea);
+                this.highlightSameColor(this.findHeroArea());
             }
             else {
                 this.removeAreaHighlights();
@@ -588,7 +580,6 @@ function (dojo, declare) {
             dojo.subscribe( 'cardsReceived', this, "notif_cardsReceived" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'placeSidekicks', this, "notif_placeSidekicks" );
-            dojo.subscribe( 'sidekicksPlacementDone', this, "notif_sidekicksPlacement" );
             dojo.subscribe( 'performManeuverDrawResult', this, "notif_performManeuverDrawResult" );
         },  
         
@@ -644,17 +635,7 @@ function (dojo, declare) {
             this.playerHero = notif.args.playerHero;
             this.placeSidekicksInPool(notif.args.sidekicks);
         },
-        
-        notif_sidekicksPlacement: function( notif )
-        {
-            console.log( 'notif_sidekicksPlacement' );
-            console.log( notif );
-
-            if (notif.args.player_id != this.player_id) {
-                this.placeTokens(notif.args.tokensPlacement);
-            }
-        },
-        
+                
         notif_performManeuverDrawResult: function( notif )
         {
             debugger;
