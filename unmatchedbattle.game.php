@@ -149,18 +149,13 @@ class UnmatchedBattle extends Table
                 // Which heros are available at the start of the game
                 $result['availableHeros'] = $this->getAvailableHeros();
                 break;
-            case 'distributeCards':
             case 'placeHeroStartingArea':
             case 'assignSidekicks':                
             case 'placeSidekicks':
             case 'placeSidekicksNextPlayer':
             case 'playAction':
             case 'playActionManeuver':
-                $result['playerDeck'] = array_filter($this->cardtypes, function($obj) use ($hero) 
-                {
-                     return $obj['deck'] == $hero && $obj['type'] == 'card'; 
-                });
-            
+                $result['playerDeck'] = $this->getHeroCards($hero);
                 $result['playerHand'] = array_column($this->cards->getPlayerHand($currentPlayerId), 'type_arg');
                 $result['tokensPlacement'] = $this->getTokensPlacement();
 
@@ -258,12 +253,14 @@ class UnmatchedBattle extends Table
         // Notify all players about the hero chosen and the remaining available heroes
         $availableHeros = $this->getAvailableHeros();
 
+        $this->createCardDeck($hero);
+
         self::notifyAllPlayers( "heroSelected", clienttranslate( '${player_name} choosed to play ${hero}' ), array(
             'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
             'hero' => $hero,
+            'deck' => $this->getHeroCards($hero)
         ) );
-
 
         self::debug("Player ".$player_id." choosed to play ".$hero);
 
@@ -367,13 +364,15 @@ class UnmatchedBattle extends Table
         $hero = $this->getCurrentPlayerHero($playerId);
 
         // draw a card
-        $this->cards->pickCard('deck_'.$hero, $playerId);	
-        $playerHand = array_column($this->cards->getPlayerHand($playerId), 'type_arg');
+        $cards = array();
+        array_push($cards, $this->cards->pickCard('deck_'.$hero, $playerId)['type_arg']);
+        
+        self::debug("Maneuver draw card: ".json_encode($cards));
 
-        self::notifyAllPlayers( "performManeuverDrawResult", clienttranslate( '${player_name} performs a maneuver' ), array(
-            'player_id' => self::getActivePlayerId(),
+        self::notifyPlayer( $playerId, "receiveCards", clienttranslate( '${player_name} performs a maneuver' ), array(
+            'player_id' => $playerId,
             'player_name' => self::getActivePlayerName(),
-            'playerHand' => $playerHand
+            'cards' => $cards,
         ) );
 
         // Check if it's the last player to place his sidekicks
@@ -537,7 +536,7 @@ class UnmatchedBattle extends Table
 
         self::debug("Assigning sidekick: ".json_encode($sidekicks));
 
-        self::notifyPlayer($player_id, "placeSidekicks", "", array(
+        self::notifyPlayer($player_id, "receiveSidekicks", "", array(
             'sidekicks' => $sidekicks, 'playerHero' => $hero
         ));
     }
@@ -552,36 +551,12 @@ class UnmatchedBattle extends Table
 
         // Create cards for all players
         foreach($players as $player)
-        {            
-            self::debug("Creating card for: ".$player['hero']);
-
-            $cardsofhero = array_filter($this->cardtypes, function($obj) use ($player) 
-            {
-                 return $obj['deck'] == $player['hero'] && $obj['type'] == 'card'; 
-            });
-            
-            $cards = array();
-
-            // Loop on all cards of the hero
-            foreach($cardsofhero as $card)
-            {
-                self::debug("Card: ".$card['name']);
-                $cards[] = array('type' => $player['hero'], 'type_arg' => $card['internal_id'], 'nbr' => $card['nbr']);
-            }
-
-            // Add the cards of the hero to his their deck
-            $this->cards->createCards( $cards, 'deck_'.$player['hero']);
-
-            // Shuffle the deck
-            $this->cards->shuffle( 'deck_'.$player['hero'] );
-
+        {
             // Give 5 cards to the player
-            $this->cards->pickCards(5, 'deck_'.$player['hero'], $player['player_id']);
-
-            $playerHand = array_column($this->cards->getPlayerHand($player['player_id']), 'type_arg');
+            $playerHand = $this->cards->pickCards(5, 'deck_'.$player['hero'], $player['player_id']);
 
             // Notify the player about the cards he received (and the definition of the cards in his deck)
-            self::notifyPlayer( $player['player_id'], 'cardsReceived', '', array ('playerhand' => $playerHand, 'cards' => $cardsofhero));
+            self::notifyPlayer( $player['player_id'], 'receiveCards', '', array ('cards' => array_column($playerHand, 'type_arg')));
         }
 
         $this->gamestate->nextState( 'placeHero' );
@@ -651,6 +626,42 @@ class UnmatchedBattle extends Table
         }
 
         return $tokenType;
+    }
+
+    function getHeroCards($hero)
+    {
+        $cards = array_filter($this->cardtypes, function($obj) use ($hero) 
+        {
+             return $obj['deck'] == $hero && $obj['type'] == 'card'; 
+        });
+    
+        return $cards;
+    }
+
+
+    function createCardDeck($hero)
+    {
+        self::debug("Creating card for: ".$hero);
+
+        $cardsofhero = array_filter($this->cardtypes, function($obj) use ($hero) 
+        {
+             return $obj['deck'] == $hero && $obj['type'] == 'card'; 
+        });
+        
+        $cards = array();
+
+        // Loop on all cards of the hero
+        foreach($cardsofhero as $card)
+        {
+            self::debug("Card: ".$card['name']);
+            $cards[] = array('type' => $hero, 'type_arg' => $card['internal_id'], 'nbr' => $card['nbr']);
+        }
+
+        // Add the cards of the hero to his their deck
+        $this->cards->createCards( $cards, 'deck_'.$hero);
+
+        // Shuffle the deck
+        $this->cards->shuffle( 'deck_'.$hero );
     }
     
 //////////////////////////////////////////////////////////////////////////////

@@ -76,6 +76,7 @@ function (dojo, declare) {
                     this.setupPlaceGame(gamedatas);
                     break;
             }
+            
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -126,7 +127,7 @@ function (dojo, declare) {
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
-            this.initializePlayerHand(gamedatas.playerHand);
+            this.addCardsToPlayerHand(gamedatas.playerHand);
             this.placeTokens(gamedatas.tokensPlacement);
             this.placeSidekicksInPool(gamedatas.playerSidekicks);
         },
@@ -136,12 +137,14 @@ function (dojo, declare) {
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
-            this.initializePlayerHand(gamedatas.playerHand);
+            this.addCardsToPlayerHand(gamedatas.playerHand);
             this.placeTokens(gamedatas.tokensPlacement);
         },
 
         initializeCardDeck: function (cards) {
-            // Player hand
+            debugger;
+
+            // Player hand        
             this.playerHand = new ebg.stock();
             this.playerHand.create( this, $('myhand'), this.cardwidth, this.cardheight );
             this.playerHand.setSelectionMode(1);
@@ -158,11 +161,11 @@ function (dojo, declare) {
             //this.gameHelper.expand();       
         },
         
-        initializePlayerHand: function (playerhand) {        
+        addCardsToPlayerHand: function (cards) {        
             debugger;    
-            playerhand.forEach(card=> {
+            cards.forEach(card=> {
                 // We add the card to the stock
-                this.playerHand.addToStock(card);
+                this.playerHand.addToStockWithId(card, card);
             });            
         },
 
@@ -199,7 +202,7 @@ function (dojo, declare) {
                 }
             }, this);
 
-            document.querySelectorAll('.token').forEach(token => {
+            document.querySelectorAll('.selectionCircle > .token').forEach(token => {
                 debugger;
                 if (!tokensPlacement.find(searchToken => { return searchToken['token_id'] == token.id; })) {
                     token.remove();
@@ -321,13 +324,18 @@ function (dojo, declare) {
             console.log( 'Entering state: '+stateName );
             
             switch( stateName ) {
-                case "chooseHero":                
-                    // Show the hero selection HTML block at this game state
-                    dojo.style( 'availableHeros', 'display', 'block' );
-                    // Hide the main game HTML block at this game state
-                    dojo.style( 'mainGame', 'display', 'none' );    
-                    break;           
-           
+                case "chooseHero":
+                    document.getElementById('availableHeros').style.display = 'block';
+                    document.getElementById('mainGame').style.display = 'none';
+                    break;
+                case "placeSidekicks":
+                    document.getElementById('availableHeros').style.display = 'none';
+                    document.getElementById('mainGame').style.display = 'block';
+                    break;
+                case "playActionManeuver":
+                    this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
+                    this.addActionButton( 'movementDone', _('Done'), 'onMoveDone' ); 
+                    break;                
                 case 'dummmy':
                     break;
             }
@@ -531,7 +539,7 @@ function (dojo, declare) {
         onPlayActionManeuver: function(evt) {
             if (this.checkAction('playAction')) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionManeuverDrawCard.html', 
-                    { 'lock': true }, this );
+                    { 'lock': true }, this, function(result) {} );
             }
         },
 
@@ -545,6 +553,31 @@ function (dojo, declare) {
             if (this.checkAction('playAction')) {
                 
             }
+        },
+
+        onPlayBoostCard: function(evt) {
+            debugger;
+            if (this.boostCardPlayed != null) {
+                this.showMessage( "You can only play one boost card per turn", "error" );                
+                return;
+            }
+
+            var cardsPlayed = this.playerHand.getSelectedItems();
+
+            if (cardsPlayed.length != 1) {
+                this.showMessage( "You must select a boost card to play", "error" );
+                return;
+            }
+
+            this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
+            this.addActionButton( 'cancel', _('Cancel'), 'onCancel' ); 
+            document.querySelector("#playBoostCard").style.display = "none";
+        },
+
+        onCancel: function(evt) {
+        },
+
+        onMoveDone: function(evt) {
         },
 
         ///////////////////////////////////////////////////
@@ -577,10 +610,9 @@ function (dojo, declare) {
 
 
             dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
-            dojo.subscribe( 'cardsReceived', this, "notif_cardsReceived" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
-            dojo.subscribe( 'placeSidekicks', this, "notif_placeSidekicks" );
-            dojo.subscribe( 'performManeuverDrawResult', this, "notif_performManeuverDrawResult" );
+            dojo.subscribe( 'receiveSidekicks', this, "notif_receiveSidekicks" );
+            dojo.subscribe( 'receiveCards', this, "notif_receiveCards" );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -602,23 +634,17 @@ function (dojo, declare) {
 
         notif_heroSelected: function( notif ) 
         {
+            debugger;
             console.log( 'notif_heroSelected' );
             console.log( notif );
 
-            // Remove the selected hero from the available heroes list
-            this.availableHeros.removeFromStockById( notif.args.hero );
-        },
-
-        notif_cardsReceived: function( notif ) 
-        {
-            document.getElementById('availableHeros').style.display = 'none';
-            document.getElementById('mainGame').style.display = 'block';
-
-            this.initializeCardDeck(notif.args.cards);
-            this.initializePlayerHand(notif.args.playerhand);
-            
-            console.log( 'notif_cardsReceived' );
-            console.log( notif );
+            if (notif.args.player_id == this.player_id) {
+                this.initializeCardDeck(notif.args.deck);
+            }
+            else {
+                // Remove the selected hero from the available heroes list
+                this.availableHeros.removeFromStockById( notif.args.hero );
+            }
         },
 
         notif_placeTokens: function( notif )
@@ -629,20 +655,20 @@ function (dojo, declare) {
             this.placeTokens(notif.args.tokensPlacement);
         },
 
-        notif_placeSidekicks: function( notif )
+        notif_receiveSidekicks: function( notif )
         {
             debugger;
             this.playerHero = notif.args.playerHero;
             this.placeSidekicksInPool(notif.args.sidekicks);
         },
                 
-        notif_performManeuverDrawResult: function( notif )
+        notif_receiveCards: function( notif )
         {
             debugger;
-            console.log( 'notif_performManeuverDrawResult' );
+            console.log( 'notif_receiveCards' );
             console.log( notif );
 
-            this.initializePlayerHand(notif.args.playerHand);
+            this.addCardsToPlayerHand(Object.values(notif.args.cards));
         }
    });             
 });

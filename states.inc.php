@@ -133,7 +133,7 @@ $machinestates = array(
     10 => array(
         "name" => "playActionManeuver",
         "description" => clienttranslate('${actplayer} may move his fighters'),
-        "descriptionmyturn" => clienttranslate('${you} may move your fighters'),
+        "descriptionmyturn" => clienttranslate('${you} may move your fighters or play a boost card'),
         "type" => "activeplayer",
         "possibleactions" => array( "playActionMove", "playActionMoveSkip" ),
         "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )

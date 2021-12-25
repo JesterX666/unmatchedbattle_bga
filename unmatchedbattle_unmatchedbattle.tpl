@@ -24,6 +24,9 @@
     
     Please REMOVE this comment before publishing your game on BGA
 -->
+<i class="fas fa-heart"></i>
+<i class="fas fa-hand-paper"></i>
+
 
 <!-- BEGIN pickup hero -->
     <div id="availableHeros"></div>
