@@ -140,6 +140,7 @@ class UnmatchedBattle extends Table
         $hero = $this->getCurrentPlayerHero($currentPlayerId);
 
         self::debug("State : ".$this->gamestate->state()['name']);
+        self::debug("Current Hero : ".$hero);
 
         $state = $this->gamestate->state();
         switch($state['name'])
@@ -630,10 +631,15 @@ class UnmatchedBattle extends Table
 
     function getHeroCards($hero)
     {
+        self::debug("All cards: ".json_encode($this->cardtypes));
+
         $cards = array_filter($this->cardtypes, function($obj) use ($hero) 
         {
+            self::debug("Card deck: ".$obj['deck']." type: ".$obj['type']);
              return $obj['deck'] == $hero && $obj['type'] == 'card'; 
         });
+
+        self::debug("Hero : ".$hero." cards: ".json_encode($cards));
     
         return $cards;
     }
