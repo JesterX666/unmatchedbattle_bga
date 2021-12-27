@@ -522,42 +522,66 @@
 // List of playable heros
 $this->heros = array(
     "Alice" => array(
+        "attack" => "M",
+        "health" => 13,
+        "move" => 2,
         "sidekicks" => array(
             1 => array(
                 "name" => "Jabberwock",
-                "internal_id" => "Alice_1"
+                "internal_id" => "Alice_1",
+                "attack" => "M",
+                "health" => 8,
             ),         
         ),
     ),
     "Arthur" => array(
+        "attack" => "M",
+        "health" => 18,
+        "move" => 2,
         "sidekicks" => array(
             1 => array(
                 "name" => "Merlin",
-                "internal_id" => "Arthur_1"
+                "internal_id" => "Arthur_1",
+                "attack" => "R",
+                "health" => 7,
             ),
         ),
     ),
     "Medusa" => array(
+        "attack" => "R",
+        "health" => 16,
+        "move" => 3,
         "sidekicks" => array(
             1 => array(
                 "name" => "Harpy",
-                "internal_id" => "Medusa_1"
+                "internal_id" => "Medusa_1",
+                "attack" => "M",
+                "health" => 1,
             ),
             2 => array(
                 "name" => "Harpy",
-                "internal_id" => "Medusa_2"
+                "internal_id" => "Medusa_2",
+                "attack" => "M",
+                "health" => 1,
             ),
             3 => array(
                 "name" => "Harpy",
-                "internal_id" => "Medusa_3"
+                "internal_id" => "Medusa_3",
+                "attack" => "M",
+                "health" => 1,
             ),
         ),
     ),
     "Sinbad" => array(
+        "attack" => "M",
+        "health" => 15,
+        "move" => 2,
         "sidekicks" => array(
             1 => array(
                 "name" => "Porter",
-                "internal_id" => "Sinbad_1"
+                "internal_id" => "Sinbad_1",
+                "attack" => "M",
+                "health" => 6,
             ),
         ),
     ),

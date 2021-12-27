@@ -77,6 +77,8 @@ function (dojo, declare) {
                     break;
             }
             
+            this.playerDeck = gamedatas.playerDeck;
+            
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
 
@@ -568,6 +570,11 @@ function (dojo, declare) {
                 this.showMessage( "You must select a boost card to play", "error" );
                 return;
             }
+
+            var cardDefinition = Object.values(this.playerDeck).find(card => 
+            {  
+                return card.internal_id == cardsPlayed[0].id; 
+            });
 
             this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
             this.addActionButton( 'cancel', _('Cancel'), 'onCancel' ); 

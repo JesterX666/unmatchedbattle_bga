@@ -635,7 +635,6 @@ class UnmatchedBattle extends Table
 
         $cards = array_filter($this->cardtypes, function($obj) use ($hero) 
         {
-            self::debug("Card deck: ".$obj['deck']." type: ".$obj['type']);
              return $obj['deck'] == $hero && $obj['type'] == 'card'; 
         });
 
