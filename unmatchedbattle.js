@@ -336,7 +336,7 @@ function (dojo, declare) {
                     break;
                 case "playActionManeuver":
                     this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
-                    this.addActionButton( 'movementDone', _('Done'), 'onMoveDone' ); 
+                    this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
                     break;                
                 case 'dummmy':
                     break;
@@ -559,26 +559,45 @@ function (dojo, declare) {
 
         onPlayBoostCard: function(evt) {
             debugger;
-            if (this.boostCardPlayed != null) {
-                this.showMessage( "You can only play one boost card per turn", "error" );                
-                return;
+            if (this.checkAction('playBoostCard')) {
+                if (this.boostCardPlayed != null) {
+                    this.showMessage( "You can only play one boost card per turn", "error" );                
+                    return;
+                }
+
+                var cardsPlayed = this.playerHand.getSelectedItems();
+
+                if (cardsPlayed.length != 1) {
+                    this.showMessage( "You must select a boost card to play", "error" );
+                    return;
+                }
+
+                var cardDefinition = Object.values(this.playerDeck).find(card => 
+                {  
+                    return card.internal_id == cardsPlayed[0].id; 
+                });
+
+                if (cardDefinition == null) {
+                    this.showMessage( "Invalid card", "error" );
+                    return;
+                }
+
+                this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
+
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playBoostCard.html',
+                    { 'lock': true, 'boostCard': cardDefinition.internal_id }, this, 'onPlayBoostCardDone' );
             }
+        },
 
-            var cardsPlayed = this.playerHand.getSelectedItems();
-
-            if (cardsPlayed.length != 1) {
-                this.showMessage( "You must select a boost card to play", "error" );
-                return;
+        onSkipBoostCard: function(evt) {
+            if (this.checkAction('skipBoostCard')) {
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playBoostCard.html',
+                    { 'lock': true, 'boostCard': 0 }, this, 'onPlayBoostCardDone' );
             }
+        },
 
-            var cardDefinition = Object.values(this.playerDeck).find(card => 
-            {  
-                return card.internal_id == cardsPlayed[0].id; 
-            });
-
-            this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
-            this.addActionButton( 'cancel', _('Cancel'), 'onCancel' ); 
-            document.querySelector("#playBoostCard").style.display = "none";
+        onPlayBoostCardDone: function(evt) {
+            // Nothing to do here
         },
 
         onCancel: function(evt) {
@@ -615,11 +634,13 @@ function (dojo, declare) {
             // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
             // 
 
-
+debugger;
             dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'receiveSidekicks', this, "notif_receiveSidekicks" );
             dojo.subscribe( 'receiveCards', this, "notif_receiveCards" );
+
+            this.notifqueue.setIgnoreNotificationCheck( 'performManeuver', (notif) => (notif.args.player_id == this.player_id) );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods

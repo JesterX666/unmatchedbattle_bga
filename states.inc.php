@@ -132,14 +132,23 @@ $machinestates = array(
 
     10 => array(
         "name" => "playActionManeuver",
+        "description" => clienttranslate('${actplayer} must choose if he wants to play a boost card'),
+        "descriptionmyturn" => clienttranslate('${you} may play a boost card'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "playBoostCard", "skipBoostCard" ),
+        "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )
+    ),
+
+    11 => array(
+        "name" => "playActionMove",
         "description" => clienttranslate('${actplayer} may move his fighters'),
-        "descriptionmyturn" => clienttranslate('${you} may move your fighters or play a boost card'),
+        "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces'),
         "type" => "activeplayer",
         "possibleactions" => array( "playActionMove", "playActionMoveSkip" ),
         "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )
     ),
 
-    11 => array(
+    12 => array(
         "name" => "playActionScheme",
         "description" => "",
         "type" => "game",
@@ -147,7 +156,7 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
     
-    12 => array(
+    13 => array(
         "name" => "playActionAttack",
         "description" => "",
         "type" => "game",
@@ -155,7 +164,7 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
         
-    13 => array(
+    14 => array(
         "name" => "playActionEnd",
         "description" => "",
         "type" => "game",
@@ -163,7 +172,7 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
             
-    14 => array(
+    15 => array(
         "name" => "playActionMove",
         "description" => "",
         "type" => "game",

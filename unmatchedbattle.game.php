@@ -366,18 +366,37 @@ class UnmatchedBattle extends Table
 
         // draw a card
         $cards = array();
-        array_push($cards, $this->cards->pickCard('deck_'.$hero, $playerId)['type_arg']);
+        $card = $this->cards->pickCard('deck_'.$hero, $playerId);
+        array_push($cards, $card['type_arg']);
         
-        self::debug("Maneuver draw card: ".json_encode($cards));
+        self::debug("Maneuver draw card: ".json_encode($card));
 
-        self::notifyPlayer( $playerId, "receiveCards", clienttranslate( '${player_name} performs a maneuver' ), array(
+        self::notifyPlayer( $playerId, "receiveCards", clienttranslate( 'You start a maneuver and drawed the ${cardName} card' ), array(
             'player_id' => $playerId,
             'player_name' => self::getActivePlayerName(),
             'cards' => $cards,
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        self::notifyAllPlayers( "performManeuver", clienttranslate( '${player_name} performs a maneuver' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName()
         ) );
 
         // Check if it's the last player to place his sidekicks
         $this->gamestate->nextState('playActionManeuver');
+    }
+
+    function playBoostCard($boostCardId)
+    {
+        self::checkAction('playBoostCard');
+
+        $playerId = self::getActivePlayerId();
+        $hero = $this->getCurrentPlayerHero($playerId);
+
+        self::debug("Hero : ".$hero." played boost card: ".$boostCardId);
+
+        $this->gamestate->nextState('playActionMove');
     }
 
     function getZonesSameColors($colors, $excludedZones)
@@ -460,6 +479,11 @@ class UnmatchedBattle extends Table
         if ($AllSidekicksPlaced)
         {
             self::debug("Everyone placed their sidekicks");
+            
+            self::notifyAllPlayers( "playAction", clienttranslate( 'The battle is ready to start!' ), array(
+                'player_id' => self::getActivePlayerId(),
+            ) );
+
             $this->gamestate->nextState( 'playAction' );
         }
         else
@@ -643,6 +667,15 @@ class UnmatchedBattle extends Table
         return $cards;
     }
 
+    function getCardByInternalId($internal_id)
+    {
+        $card = array_filter($this->cardtypes, function($obj) use ($internal_id) 
+        {
+             return $obj['internal_id'] == $internal_id; 
+        });
+
+        return array_pop($card);
+    }
 
     function createCardDeck($hero)
     {

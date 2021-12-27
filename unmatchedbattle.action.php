@@ -70,6 +70,15 @@
         self::ajaxResponse( );        
     }
 
+    
+    public function playBoostCard()
+    {
+        self::setAjaxMode();
+        $boostCardId = self::getArg( "boostCard", AT_posint, true );
+        $this->game->playBoostCard($boostCardId);
+        self::ajaxResponse( );        
+    }
+
     public function validateJSonAlphaNum($value, $argName = 'unknown')
     {
       if (is_array($value)) {
