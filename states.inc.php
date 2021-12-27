@@ -127,7 +127,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play an action'),
         "type" => "activeplayer",
         "possibleactions" => array( "playAction" ),
-        "transitions" => array( "playActionManeuver" => 10, "playActionScheme" => 11, "playActionAttack" => 12 )
+        "transitions" => array( "playActionManeuver" => 10, "playActionScheme" => 12, "playActionAttack" => 13 )
     ),
 
     10 => array(
@@ -136,19 +136,29 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} may play a boost card'),
         "type" => "activeplayer",
         "possibleactions" => array( "playBoostCard", "skipBoostCard" ),
-        "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )
+        "transitions" => array( "playActionMove" => 11 )
     ),
 
     11 => array(
         "name" => "playActionMove",
         "description" => clienttranslate('${actplayer} may move his fighters'),
         "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces'),
+        "args" => "getPlayActionMoveArgs",
         "type" => "activeplayer",
-        "possibleactions" => array( "playActionMove", "playActionMoveSkip" ),
-        "transitions" => array( "playActionMove" => 14, "playActionMoveSkip" => 13 )
+        "possibleactions" => array( "playActionMoveDone" ),
+        "transitions" => array( "playActionMoveDone" => 12 )
     ),
 
     12 => array(
+        "name" => "playActionMoveDone",
+        "description" => clienttranslate('${actplayer} moved his fighters'),
+        "descriptionmyturn" => clienttranslate('${you} moved your fighters'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "checkPlayActionDone" ),
+        "transitions" => array( "checkPlayActionDone" => 12 )
+    ),
+
+    13 => array(
         "name" => "playActionScheme",
         "description" => "",
         "type" => "game",
@@ -156,7 +166,7 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
     
-    13 => array(
+    14 => array(
         "name" => "playActionAttack",
         "description" => "",
         "type" => "game",
@@ -164,21 +174,13 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
         
-    14 => array(
-        "name" => "playActionEnd",
-        "description" => "",
-        "type" => "game",
-        "action" => "checkEveryonePlacedSidekicks",
-        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
-    ),
-            
     15 => array(
-        "name" => "playActionMove",
+        "name" => "checkPlayActionDone",
         "description" => "",
         "type" => "game",
-        "action" => "checkEveryonePlacedSidekicks",
+        "action" => "checkPlayActionDone",
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
-    ),
+    ),            
 
 /*
     Examples:

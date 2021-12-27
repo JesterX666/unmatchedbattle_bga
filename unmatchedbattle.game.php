@@ -135,40 +135,42 @@ class UnmatchedBattle extends Table
     protected function getAllDatas()
     {
         $result = array();
+
+        // !! We must only return informations visible by this player !!
     
-        $currentPlayerId = self::getCurrentPlayerId();    // !! We must only return informations visible by this player !!
+        $currentPlayerId = self::getCurrentPlayerId();    
         $hero = $this->getCurrentPlayerHero($currentPlayerId);
 
         self::debug("State : ".$this->gamestate->state()['name']);
         self::debug("Current Hero : ".$hero);
 
         $state = $this->gamestate->state();
-        switch($state['name'])
+        if (($state['name'] == 'chooseHero') || ($state['name'] == 'chooseHeroNextPlayer'))
         {
-            case 'chooseHero':
-            case 'chooseHeroNextPlayer':
                 // Which heros are available at the start of the game
                 $result['availableHeros'] = $this->getAvailableHeros();
-                break;
-            case 'placeHeroStartingArea':
-            case 'assignSidekicks':                
-            case 'placeSidekicks':
-            case 'placeSidekicksNextPlayer':
-            case 'playAction':
-            case 'playActionManeuver':
-                $result['playerDeck'] = $this->getHeroCards($hero);
-                $result['playerHand'] = array_column($this->cards->getPlayerHand($currentPlayerId), 'type_arg');
-                $result['tokensPlacement'] = $this->getTokensPlacement();
-
-                self::debug("Tokens Placement : ".json_encode($result['tokensPlacement']));
-
-                $result['playerSidekicks'] = $this->getHeroSidekicks($hero);
-                $result['playerHero'] = $hero;
-
-                //$result['currentBoard'] = array_column($this->cards->getPlayerDeck($current_player_id), 'type_arg');
-                self::debug("getAllData HERO : ".json_encode($result));
-                break;
         }
+
+        $result['playerDeck'] = $this->getHeroCards($hero);
+
+        $playerHand = $this->cards->getPlayerHand($currentPlayerId);
+
+        $cards = array();
+
+        foreach($playerHand as $card)
+        {                   
+            $cards[] = array ("id" => $card['id'], "internal_id" => $card['type_arg']);
+        }
+
+        $result['playerHand'] = $cards;
+        $result['tokensPlacement'] = $this->getTokensPlacement();
+
+        self::debug("Tokens Placement : ".json_encode($result['tokensPlacement']));
+
+        $result['playerSidekicks'] = $this->getHeroSidekicks($hero);
+        $result['playerHero'] = $hero;
+
+        self::debug("getAllData HERO : ".json_encode($result));
 
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
@@ -367,7 +369,8 @@ class UnmatchedBattle extends Table
         // draw a card
         $cards = array();
         $card = $this->cards->pickCard('deck_'.$hero, $playerId);
-        array_push($cards, $card['type_arg']);
+
+        array_push($cards, array ("id" => $card['id'], "internal_id" => $card['type_arg']));
         
         self::debug("Maneuver draw card: ".json_encode($card));
 
@@ -396,7 +399,38 @@ class UnmatchedBattle extends Table
 
         self::debug("Hero : ".$hero." played boost card: ".$boostCardId);
 
+        $card = $this->cards->getCard($boostCardId);
+
+        $this->cards->moveCard( $boostCardId, 'played_'.$playerId );
+
         $this->gamestate->nextState('playActionMove');
+    }
+
+    function getPlayActionMoveArgs()
+    {
+        $playerId = self::getCurrentPlayerId();
+
+        $card = $this->cards->getCardOnTop( 'played_'.$playerId );
+        $boostAmount = 0;
+
+        if ($card != null)
+        {
+            self::debug("getPlayActionMoveArgs - Boost card: ".json_encode($card));
+            $cardDefinition = $this->getCardByInternalId($card['type_arg']);
+            self::debug("getPlayActionMoveArgs - Boost card definition: ".json_encode($cardDefinition));
+            $boostAmount = $cardDefinition['boost'];
+        }
+
+        $hero = $currentPlayerHero = $this->getCurrentPlayerHero(self::getCurrentPlayerId());
+        $heroMove = $this->heros[$hero]['move'];
+
+        self::debug("Hero move : ".$heroMove." - Boost amount : ".$boostAmount);
+
+        $moveAmount = $boostAmount + $heroMove;
+
+        return array(
+            'moveAmount' => $moveAmount
+        );
     }
 
     function getZonesSameColors($colors, $excludedZones)
@@ -580,11 +614,24 @@ class UnmatchedBattle extends Table
             // Give 5 cards to the player
             $playerHand = $this->cards->pickCards(5, 'deck_'.$player['hero'], $player['player_id']);
 
+            $cards = array();
+
+            foreach($playerHand as $card)
+            {
+                $cards[] = array ("id" => $card['id'], "internal_id" => $card['type_arg']);
+            }
+
             // Notify the player about the cards he received (and the definition of the cards in his deck)
-            self::notifyPlayer( $player['player_id'], 'receiveCards', '', array ('cards' => array_column($playerHand, 'type_arg')));
+            self::notifyPlayer( $player['player_id'], 'receiveCards', '', array ('cards' => $cards ));
         }
 
         $this->gamestate->nextState( 'placeHero' );
+    }
+
+    // Check if the current player has finished his turn
+    function checkPlayActionDone()
+    {
+
     }
 
     function getHeroSidekicks($hero)
@@ -669,14 +716,17 @@ class UnmatchedBattle extends Table
 
     function getCardByInternalId($internal_id)
     {
-        $card = array_filter($this->cardtypes, function($obj) use ($internal_id) 
+        $cards = array_filter($this->cardtypes, function($obj) use ($internal_id) 
         {
              return $obj['internal_id'] == $internal_id; 
         });
 
-        return array_pop($card);
+        self::debug("Card: ".json_encode($cards));
+
+        return array_pop($cards);
     }
 
+    // Create cards for all players
     function createCardDeck($hero)
     {
         self::debug("Creating card for: ".$hero);

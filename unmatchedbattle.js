@@ -64,20 +64,16 @@ function (dojo, declare) {
             
             // TODO: Set up your game interface here, according to "gamedatas"
 
-            switch (gamedatas.gamestate.name) {
-                case "chooseHero":
+            switch(gamedatas.gamestate.name) {
+               case "chooseHero":
                     this.setupChooseHero(gamedatas);
                     break;
                 case "placeSidekicks":
-                    this.setupPlaceSidekicks(gamedatas);
+                    this.placeSidekicksInPool(gamedatas.playerSidekicks);
                     break;
-                case "playAction":
-                case "playActionManeuver":
+                default:
                     this.setupPlaceGame(gamedatas);
-                    break;
             }
-            
-            this.playerDeck = gamedatas.playerDeck;
             
             // Setup game notifications to handle (see "setupNotifications" method below)
             this.setupNotifications();
@@ -124,16 +120,6 @@ function (dojo, declare) {
             });        
         },
 
-        setupPlaceSidekicks: function (gamedatas) {         
-            // TODO : MERGE THIS WITH THE OTHER SETUP
-            console.log(gamedatas);
-            this.playerHero = gamedatas.playerHero;
-            this.initializeCardDeck(gamedatas.playerDeck);
-            this.addCardsToPlayerHand(gamedatas.playerHand);
-            this.placeTokens(gamedatas.tokensPlacement);
-            this.placeSidekicksInPool(gamedatas.playerSidekicks);
-        },
-
         setupPlaceGame: function (gamedatas) {
             debugger;
             console.log(gamedatas);
@@ -145,6 +131,8 @@ function (dojo, declare) {
 
         initializeCardDeck: function (cards) {
             debugger;
+            
+            this.playerDeck = cards;            
 
             // Player hand        
             this.playerHand = new ebg.stock();
@@ -167,7 +155,7 @@ function (dojo, declare) {
             debugger;    
             cards.forEach(card=> {
                 // We add the card to the stock
-                this.playerHand.addToStockWithId(card, card);
+                this.playerHand.addToStockWithId(card.internal_id, card.id);
             });            
         },
 
@@ -262,9 +250,12 @@ function (dojo, declare) {
 
         resetActionButtonsAction: function () {
             this.removeActionButtons();
-            this.addActionButton( 'playActionManeuver', _('Maneuver'), 'onPlayActionManeuver' ); 
-            this.addActionButton( 'playActionScheme', _('Scheme'), 'onPlayActionScheme' ); 
-            this.addActionButton( 'playActionAttack', _('Attack'), 'onPlayActionAttack' ); 
+
+            if (this.isCurrentPlayerActive()) {
+                this.addActionButton( 'playActionManeuver', _('Maneuver'), 'onPlayActionManeuver' ); 
+                this.addActionButton( 'playActionScheme', _('Scheme'), 'onPlayActionScheme' ); 
+                this.addActionButton( 'playActionAttack', _('Attack'), 'onPlayActionAttack' ); 
+            }
         },
 
         onChangeHeroSelection: function (selection) {
@@ -335,8 +326,11 @@ function (dojo, declare) {
                     document.getElementById('mainGame').style.display = 'block';
                     break;
                 case "playActionManeuver":
-                    this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
-                    this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
+                    debugger;
+                    if (this.isCurrentPlayerActive()) {
+                        this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
+                        this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
+                    }
                     break;                
                 case 'dummmy':
                     break;
@@ -574,7 +568,7 @@ function (dojo, declare) {
 
                 var cardDefinition = Object.values(this.playerDeck).find(card => 
                 {  
-                    return card.internal_id == cardsPlayed[0].id; 
+                    return card.internal_id == cardsPlayed[0].type;
                 });
 
                 if (cardDefinition == null) {
@@ -585,7 +579,7 @@ function (dojo, declare) {
                 this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
 
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playBoostCard.html',
-                    { 'lock': true, 'boostCard': cardDefinition.internal_id }, this, 'onPlayBoostCardDone' );
+                    { 'lock': true, 'boostCard': cardsPlayed[0]['id'] }, this, 'onPlayBoostCardDone' );
             }
         },
 
