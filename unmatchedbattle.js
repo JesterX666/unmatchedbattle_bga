@@ -51,7 +51,6 @@ function (dojo, declare) {
         
         setup: function( gamedatas )
         {
-            debugger;
             console.log( "Starting game setup" );
             
             // Setting up player boards
@@ -89,7 +88,6 @@ function (dojo, declare) {
         },
 
         setupChooseHero: function (gamedatas) {
-            debugger;
             // List of available heros
             this.availableHeros = new ebg.stock();
             this.availableHeros.create( this, $('availableHeros'), this.cardwidth, this.cardheight );
@@ -121,7 +119,6 @@ function (dojo, declare) {
         },
 
         setupPlaceGame: function (gamedatas) {
-            debugger;
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
@@ -130,8 +127,6 @@ function (dojo, declare) {
         },
 
         initializeCardDeck: function (cards) {
-            debugger;
-            
             this.playerDeck = cards;            
 
             // Player hand        
@@ -152,7 +147,6 @@ function (dojo, declare) {
         },
         
         addCardsToPlayerHand: function (cards) {        
-            debugger;    
             cards.forEach(card=> {
                 // We add the card to the stock
                 this.playerHand.addToStockWithId(card.internal_id, card.id);
@@ -171,13 +165,9 @@ function (dojo, declare) {
         },
 
         placeTokens: function (tokensPlacement) {
-            debugger;
-
             console.log('New tokens placement: ' + tokensPlacement);
 
             Object.values(tokensPlacement).forEach(token => {
-                debugger;
-
                 var existingToken = document.querySelector('#' + token['token_id']);
 
                 if (existingToken == null) {
@@ -185,7 +175,6 @@ function (dojo, declare) {
                     this.createToken(token, area);
                 }
                 else {
-                    debugger;
                     if (existingToken.parentElement.id != token['area_id']) {
                         this.moveToken(existingToken, token['area_id']);
                     }
@@ -193,7 +182,6 @@ function (dojo, declare) {
             }, this);
 
             document.querySelectorAll('.selectionCircle > .token').forEach(token => {
-                debugger;
                 if (!tokensPlacement.find(searchToken => { return searchToken['token_id'] == token.id; })) {
                     token.remove();
                 }
@@ -201,7 +189,6 @@ function (dojo, declare) {
         },
 
         placeSidekicksInPool: function (sidekicks) {
-            debugger;
             this.sidekicks = sidekicks;
 
             Object.values(sidekicks).forEach(sidekick => {
@@ -234,6 +221,47 @@ function (dojo, declare) {
                     }
                 });
             });
+        },
+
+        // Will highlight all areas immediatly adjacent to the selected area
+        highlightAdjacentAreas: function(area, distance, tokensToIgnore) {
+            debugger;
+
+            // Remove the highlights of all areas
+            this.removeAreaHighlights();
+            
+            var areas = this.getAdjacentAreas(area, null, 1, distance, tokensToIgnore);
+
+            areas.forEach(area => {
+                area.classList.add('selectionCircleSelected');
+            });
+        },
+
+        // Recursive function that gathers all areas that are adjacent to the selected area up to a certain distance
+        getAdjacentAreas: function(startingArea, areasFound, currentDistance, maxDistance, tokenClassesToIgnore) {
+            if (areasFound == null) {
+                areasFound = [];
+            }
+
+            var exits = startingArea.getAttribute('data-exits');
+
+            exits.split(',').forEach(exit => {
+                // Highlight all exits area that doesn't have a token in the ignore list
+                var area = document.querySelector('#area_' + exit);
+
+                var token = area.querySelector('.token');
+                if ((token == null) || (tokenClassesToIgnore == null) || (tokenClassesToIgnore.indexOf(token.className) == -1)) {
+                    if (areasFound.indexOf(area) == -1) {
+                        areasFound.push(area);
+                    }
+                }
+
+                if (currentDistance < maxDistance) {
+                    areasFound = this.getAdjacentAreas(area, areasFound, currentDistance + 1, maxDistance, tokenClassesToIgnore);
+                }
+            });
+
+            return areasFound;
         },
 
         // Will remove the highlights of all areas
@@ -282,8 +310,6 @@ function (dojo, declare) {
         
         onSidekickPlacementDone: function () {
             if (this.checkAction('placeSidekicks')) {
-                debugger;
-
                 var sidekicksPlacement = [];
 
                 Object.values(this.sidekicks).forEach(sidekick => {
@@ -326,12 +352,16 @@ function (dojo, declare) {
                     document.getElementById('mainGame').style.display = 'block';
                     break;
                 case "playActionManeuver":
-                    debugger;
                     if (this.isCurrentPlayerActive()) {
                         this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
                         this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
                     }
-                    break;                
+                    break;   
+                case "playActionMove":
+                    if (this.isCurrentPlayerActive()) {
+                        this.addActionButton( 'endManeuver', _('End Maneuver Action'), 'onEndManeuver' ); 
+                    }
+                    break;
                 case 'dummmy':
                     break;
             }
@@ -414,8 +444,6 @@ function (dojo, declare) {
         },
 
         onTokenClick: function (event) {
-            debugger;
-
             if (!this.isCurrentPlayerActive())
                 return;
 
@@ -439,7 +467,6 @@ function (dojo, declare) {
         },
 
         onAreaClick: function (event) {
-            debugger;
             var selectedToken = dojo.query('.tokenSelected');
 
             if (selectedToken.length < 1)
@@ -552,7 +579,6 @@ function (dojo, declare) {
         },
 
         onPlayBoostCard: function(evt) {
-            debugger;
             if (this.checkAction('playBoostCard')) {
                 if (this.boostCardPlayed != null) {
                     this.showMessage( "You can only play one boost card per turn", "error" );                
@@ -581,6 +607,9 @@ function (dojo, declare) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playBoostCard.html',
                     { 'lock': true, 'boostCard': cardsPlayed[0]['id'] }, this, 'onPlayBoostCardDone' );
             }
+        },
+
+        onEndManeuver: function(evt) {
         },
 
         onSkipBoostCard: function(evt) {
@@ -628,7 +657,6 @@ function (dojo, declare) {
             // this.notifqueue.setSynchronous( 'cardPlayed', 3000 );
             // 
 
-debugger;
             dojo.subscribe( 'heroSelected', this, "notif_heroSelected" );
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'receiveSidekicks', this, "notif_receiveSidekicks" );
@@ -656,7 +684,6 @@ debugger;
 
         notif_heroSelected: function( notif ) 
         {
-            debugger;
             console.log( 'notif_heroSelected' );
             console.log( notif );
 
@@ -679,14 +706,12 @@ debugger;
 
         notif_receiveSidekicks: function( notif )
         {
-            debugger;
             this.playerHero = notif.args.playerHero;
             this.placeSidekicksInPool(notif.args.sidekicks);
         },
                 
         notif_receiveCards: function( notif )
         {
-            debugger;
             console.log( 'notif_receiveCards' );
             console.log( notif );
 
