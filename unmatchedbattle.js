@@ -237,7 +237,9 @@ function (dojo, declare) {
             var areas = this.getAdjacentAreas(area, null, 1, distance, impassablesAreas);
 
             areas.forEach(area => {
-                area.classList.add('selectionCircleSelected');
+                if (area.querySelector('.token') == null) {
+                    area.classList.add('selectionCircleSelected');
+                }
             });
         },
 
@@ -257,10 +259,10 @@ function (dojo, declare) {
                     if (areasFound.indexOf(area) == -1) {
                         areasFound.push(area);
                     }
-                }
 
-                if (currentDistance < maxDistance) {
-                    areasFound = this.getAdjacentAreas(area, areasFound, currentDistance + 1, maxDistance, tokenClassesToIgnore);
+                    if (currentDistance < maxDistance) {
+                        areasFound = this.getAdjacentAreas(area, areasFound, currentDistance + 1, maxDistance, impassablesAreas);
+                    }
                 }
             });
 
@@ -464,6 +466,9 @@ function (dojo, declare) {
             if (!this.isCurrentPlayerActive())
                 return;
 
+            if (event.target.getAttribute('data-team') != this.team)
+                return;
+
             var selected = event.target.classList.contains('tokenSelected');
 
             document.querySelectorAll('.tokenSelected').forEach(token => {
@@ -479,7 +484,18 @@ function (dojo, declare) {
                         this.highlightSameColor(this.findHeroArea());
                         break;
                     case 'playActionMove':
-                        this.highlightAdjacentAreas(event.target.parentElement, this.moveAmount);
+                        debugger;
+                        var opposingTokens = document.querySelectorAll('.token:not([data-team="' + this.team + '"])');
+
+                        var impassablesAreas = [];
+                        opposingTokens.forEach(token => {
+                            impassablesAreas.push(token.parentElement);
+                        });
+
+                        var initialAreaId = this.tokensPlacement.find(token => { return token.token_id == 'Sinbad'})['area_id'];
+                        var initialArea = document.getElementById('area_' + initialAreaId);
+
+                        this.highlightAdjacentAreas(initialArea, this.moveAmount, impassablesAreas);
                         break;
                 }
             }
