@@ -492,7 +492,7 @@ function (dojo, declare) {
                             impassablesAreas.push(token.parentElement);
                         });
 
-                        var initialAreaId = this.tokensPlacement.find(token => { return token.token_id == 'Sinbad'})['area_id'];
+                        var initialAreaId = this.tokensPlacement.find(token => { return token.token_id == event.target.id})['area_id'];
                         var initialArea = document.getElementById('area_' + initialAreaId);
 
                         this.highlightAdjacentAreas(initialArea, this.moveAmount, impassablesAreas);
