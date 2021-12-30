@@ -67,9 +67,6 @@ function (dojo, declare) {
                case "chooseHero":
                     this.setupChooseHero(gamedatas);
                     break;
-                case "placeSidekicks":
-                    this.placeSidekicksInPool(gamedatas.playerSidekicks);
-                    break;
                 default:
                     this.setupPlaceGame(gamedatas);
             }
@@ -119,11 +116,15 @@ function (dojo, declare) {
         },
 
         setupPlaceGame: function (gamedatas) {
+            debugger;
             console.log(gamedatas);
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
             this.addCardsToPlayerHand(gamedatas.playerHand);
             this.placeTokens(gamedatas.tokensPlacement);
+            this.placeSidekicksInPool(gamedatas.playerSidekicks);
+            this.moveAmount = gamedatas.moveAmount;
+            this.team = gamedatas.team;
         },
 
         initializeCardDeck: function (cards) {
@@ -154,7 +155,8 @@ function (dojo, declare) {
         },
 
         createToken: function (token, area) {
-            var tokenBlock =  this.format_block( 'jstpl_token', {internalId: token['token_id'], tokenType: 'token' + token['token_type']} );
+            debugger;
+            var tokenBlock =  this.format_block( 'jstpl_token', {internalId: token['token_id'], tokenType: 'token' + token['token_type'], team: token['team']} );
             var tokenElement = dojo.place(tokenBlock, area);
             this.connect(tokenElement, 'onclick', 'onTokenClick');
         },
@@ -166,6 +168,8 @@ function (dojo, declare) {
 
         placeTokens: function (tokensPlacement) {
             console.log('New tokens placement: ' + tokensPlacement);
+
+            this.tokensPlacement = tokensPlacement;
 
             Object.values(tokensPlacement).forEach(token => {
                 var existingToken = document.querySelector('#' + token['token_id']);
@@ -224,13 +228,13 @@ function (dojo, declare) {
         },
 
         // Will highlight all areas immediatly adjacent to the selected area
-        highlightAdjacentAreas: function(area, distance, tokensToIgnore) {
+        highlightAdjacentAreas: function(area, distance, impassablesAreas) {
             debugger;
 
             // Remove the highlights of all areas
             this.removeAreaHighlights();
             
-            var areas = this.getAdjacentAreas(area, null, 1, distance, tokensToIgnore);
+            var areas = this.getAdjacentAreas(area, null, 1, distance, impassablesAreas);
 
             areas.forEach(area => {
                 area.classList.add('selectionCircleSelected');
@@ -238,7 +242,7 @@ function (dojo, declare) {
         },
 
         // Recursive function that gathers all areas that are adjacent to the selected area up to a certain distance
-        getAdjacentAreas: function(startingArea, areasFound, currentDistance, maxDistance, tokenClassesToIgnore) {
+        getAdjacentAreas: function(startingArea, areasFound, currentDistance, maxDistance, impassablesAreas) {
             if (areasFound == null) {
                 areasFound = [];
             }
@@ -249,8 +253,7 @@ function (dojo, declare) {
                 // Highlight all exits area that doesn't have a token in the ignore list
                 var area = document.querySelector('#area_' + exit);
 
-                var token = area.querySelector('.token');
-                if ((token == null) || (tokenClassesToIgnore == null) || (tokenClassesToIgnore.indexOf(token.className) == -1)) {
+                if ((impassablesAreas == null) || (impassablesAreas.indexOf(area) == -1)) {
                     if (areasFound.indexOf(area) == -1) {
                         areasFound.push(area);
                     }
@@ -262,6 +265,19 @@ function (dojo, declare) {
             });
 
             return areasFound;
+        },
+
+        getEnemiesAreas: function() {
+            debugger;
+            var enemiesAreas = [];
+
+            this.tokensPlacement.forEach(token => {
+
+                var enemyArea = document.querySelector('#area_' + enemy);
+                enemiesAreas.push(enemyArea);
+            });
+
+            return enemiesAreas;
         },
 
         // Will remove the highlights of all areas
@@ -444,6 +460,7 @@ function (dojo, declare) {
         },
 
         onTokenClick: function (event) {
+            debugger;
             if (!this.isCurrentPlayerActive())
                 return;
 
@@ -457,7 +474,14 @@ function (dojo, declare) {
                 event.target.classList.add('tokenSelected');
             
             if (event.target.classList.contains('tokenSelected')) {
-                this.highlightSameColor(this.findHeroArea());
+                switch(this.gamedatas.gamestate.name) {
+                    case 'placeSidekicks':
+                        this.highlightSameColor(this.findHeroArea());
+                        break;
+                    case 'playActionMove':
+                        this.highlightAdjacentAreas(event.target.parentElement, this.moveAmount);
+                        break;
+                }
             }
             else {
                 this.removeAreaHighlights();
@@ -661,6 +685,7 @@ function (dojo, declare) {
             dojo.subscribe( 'placeTokens', this, "notif_placeTokens" );
             dojo.subscribe( 'receiveSidekicks', this, "notif_receiveSidekicks" );
             dojo.subscribe( 'receiveCards', this, "notif_receiveCards" );
+            dojo.subscribe( 'moveAmount', this, "notif_moveAmount" );
 
             this.notifqueue.setIgnoreNotificationCheck( 'performManeuver', (notif) => (notif.args.player_id == this.player_id) );
         },  
@@ -716,6 +741,16 @@ function (dojo, declare) {
             console.log( notif );
 
             this.addCardsToPlayerHand(Object.values(notif.args.cards));
+        },
+
+        notif_moveAmount: function( notif )
+        {
+            console.log( 'notif_moveAmount' );
+            console.log( notif );
+
+            if (notif.args.player_id == this.player_id) {
+                this.moveAmount = notif.args.moveAmount;
+            }
         }
    });             
 });

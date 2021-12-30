@@ -72,7 +72,7 @@
 // Javascript HTML templates
 
 var jstpl_sidekickPoolItem = '<div id="${sidekickPoolItemId}" class="sidekickPoolItem"></div>';
-var jstpl_token = '<div id="${internalId}" class="token ${tokenType}" draggable="true"></div>';
+var jstpl_token = '<div id="${internalId}" class="token ${tokenType}" draggable="true" data-team="${team}"></div>';
 
 /*
 // Example:

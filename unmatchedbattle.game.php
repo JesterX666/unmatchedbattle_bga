@@ -91,7 +91,8 @@ class UnmatchedBattle extends Table
         //self::initStat( 'table', 'table_teststat1', 0 );    // Init a table statistics
         //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
 
-        $this->initTables();
+        $this->initTables($players);
+        $this->assignTeamsToPlayers($players);
         
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -99,7 +100,7 @@ class UnmatchedBattle extends Table
         /************ End of the game initialization *****/
     }
 
-    protected function initTables()
+    protected function initTables($players)
     {        
         self::debug("Init tables");
 
@@ -115,13 +116,41 @@ class UnmatchedBattle extends Table
             // Find the map in the list
             $boardId = $this->gamestate->table_globals[100];
             self::debug("Chosen map : ".$boardId);
-        }   
-               
+        }
+
         // We save the board name in the game state
         self::debug("Board ID : ".$boardId);
-        self::setGameStateInitialValue( 'boardId', $boardId );
+        self::setGameStateInitialValue( 'boardId', $boardId );        
     }
 
+        // Assign teams to players
+    function assignTeamsToPlayers($players)
+    {
+        $randomizedPlayers = array_keys($players);
+        shuffle($randomizedPlayers);
+
+        $teamId = 1;
+        $playersInTeam = 0;
+        foreach($randomizedPlayers as $player_id)
+        {
+            $sql = "UPDATE player SET team = '".$teamId."' WHERE player_id = ".$player_id;
+            self::DbQuery( $sql );
+                    
+            $playersInTeam++;
+            if ((array_key_exists(101, $this->gamestate->table_globals)) && ($this->gamestate->table_globals[101] == 1))
+            {
+                if ($playersInTeam == 2)
+                {
+                    $teamId++;
+                    $playersInTeam = 0;
+                }
+            }
+            else
+            {
+                $teamId++;
+            }
+        }        
+    }
 
     /*
         getAllDatas: 
@@ -138,10 +167,13 @@ class UnmatchedBattle extends Table
 
         // !! We must only return informations visible by this player !!
     
-        $currentPlayerId = self::getCurrentPlayerId();    
-        $hero = $this->getCurrentPlayerHero($currentPlayerId);
+        $currentPlayerId = self::getCurrentPlayerId();
+
+        $player = $this->getPlayerById($currentPlayerId);
+        $hero = $player['hero'];
 
         self::debug("State : ".$this->gamestate->state()['name']);
+        self::debug("Player Info : ".json_encode($player));
         self::debug("Current Hero : ".$hero);
 
         $state = $this->gamestate->state();
@@ -167,13 +199,19 @@ class UnmatchedBattle extends Table
 
         self::debug("Tokens Placement : ".json_encode($result['tokensPlacement']));
 
-        $result['playerSidekicks'] = $this->getHeroSidekicks($hero);
-        $result['playerHero'] = $hero;
+        if ($hero != null) 
+        {
+            $result['playerSidekicks'] = $this->getPlayerSidekicks($player);
+            $result['playerHero'] = $hero;
+        }
 
         self::debug("getAllData HERO : ".json_encode($result));
 
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
+
+        $result['moveAmount'] = $this->getMoveAmount();
+        $result['team'] = $player['team'];
   
         return $result;
     }
@@ -303,12 +341,13 @@ class UnmatchedBattle extends Table
         $boardId = $this->getGameStateValue('boardId');
         $board = $this->boards[$boardId];
         $zones = $board['zones'];
+        $playerId = self::getCurrentPlayerId();
 
-        $currentPlayerHero = $this->getCurrentPlayerHero(self::getCurrentPlayerId());
+        $currentPlayerHero = $this->getPlayerById($playerId)['hero'];
         $sidekicks = array_column($this->heros[$currentPlayerHero]['sidekicks'], 'internal_id');
         self::debug("Sidekicks : ".json_encode($sidekicks));
         
-        $playerNo = $this->getPlayerNoById(self::getCurrentPlayerId());
+        $playerNo = $this->getPlayerNoById($playerId);
         self::debug("PlayerNo : ".$playerNo);
         
         $startingArea = array_filter($zones, function($zone) use ($playerNo) 
@@ -364,7 +403,7 @@ class UnmatchedBattle extends Table
         self::checkAction('playAction');
 
         $playerId = self::getActivePlayerId();
-        $hero = $this->getCurrentPlayerHero($playerId);
+        $hero = $this->getPlayerById($playerId)['hero'];
 
         // draw a card
         $cards = array();
@@ -395,7 +434,7 @@ class UnmatchedBattle extends Table
         self::checkAction('playBoostCard');
 
         $playerId = self::getActivePlayerId();
-        $hero = $this->getCurrentPlayerHero($playerId);
+        $hero = $this->getPlayerById($playerId)['hero'];
 
         self::debug("Hero : ".$hero." played boost card: ".$boostCardId);
 
@@ -403,10 +442,26 @@ class UnmatchedBattle extends Table
 
         $this->cards->moveCard( $boostCardId, 'played_'.$playerId );
 
+        $moveAmount = $this->getMoveAmount();
+
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the ${cardName} card as a boost andcan move ${moveAmount} area per fighters' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name'],
+            'moveAmount' => $moveAmount
+        ));
+
         $this->gamestate->nextState('playActionMove');
     }
 
     function getPlayActionMoveArgs()
+    {        
+        return array(
+            'moveAmount' => $this->getMoveAmount()
+        );
+    }
+
+    function getMoveAmount()
     {
         $playerId = self::getCurrentPlayerId();
 
@@ -415,22 +470,23 @@ class UnmatchedBattle extends Table
 
         if ($card != null)
         {
-            self::debug("getPlayActionMoveArgs - Boost card: ".json_encode($card));
+            self::debug("getMoveAmount - Boost card: ".json_encode($card));
             $cardDefinition = $this->getCardByInternalId($card['type_arg']);
-            self::debug("getPlayActionMoveArgs - Boost card definition: ".json_encode($cardDefinition));
+            self::debug("getMoveAmount - Boost card definition: ".json_encode($cardDefinition));
             $boostAmount = $cardDefinition['boost'];
         }
 
-        $hero = $currentPlayerHero = $this->getCurrentPlayerHero(self::getCurrentPlayerId());
-        $heroMove = $this->heros[$hero]['move'];
+        $hero = $this->getPlayerById($playerId)['hero'];
+        $heroMove = 0;
+
+        if ($hero != null)
+        {
+            $heroMove = $this->heros[$hero]['move'];
+        }
 
         self::debug("Hero move : ".$heroMove." - Boost amount : ".$boostAmount);
 
-        $moveAmount = $boostAmount + $heroMove;
-
-        return array(
-            'moveAmount' => $moveAmount
-        );
+        return $boostAmount + $heroMove;
     }
 
     function getZonesSameColors($colors, $excludedZones)
@@ -591,7 +647,8 @@ class UnmatchedBattle extends Table
     // Notify a player about which sidekicks he has to place
     function notifySidekicksPlacement($player_id, $hero)
     {
-        $sidekicks= $this->getHeroSidekicks($hero);
+        $player = $this->getPlayerById($player_id);
+        $sidekicks= $this->getPlayerSidekicks($player);
 
         self::debug("Assigning sidekick: ".json_encode($sidekicks));
 
@@ -634,14 +691,19 @@ class UnmatchedBattle extends Table
 
     }
 
-    function getHeroSidekicks($hero)
+    function getPlayerSidekicks($player)
     {
-        $heroObject = $this->heros[$hero];
+        $heroObject = $this->heros[$player['hero']];
         $sidekicks = array();
 
         foreach($heroObject['sidekicks'] as $sidekick)
         {
-            $sidekicks[] = array('area_id' => '', 'token_id' => $sidekick['internal_id'], 'token_type' => $sidekick['name']);
+            $sidekicks[] = array(
+                'area_id' => '', 
+                'token_id' => $sidekick['internal_id'], 
+                'token_type' => $sidekick['name'],
+                'team' => $player['team']
+            );
         }
 
         self::debug("Hero Sidekicks to place : ".json_encode($sidekicks));
@@ -661,7 +723,7 @@ class UnmatchedBattle extends Table
             $area = $token['area_id'];
             $tokenId = $token['token_name'];
             $tokenType = $this->getTokenType($tokenId);
-            $tokens[] = array('area_id' => $area, 'token_id' => $tokenId, 'token_type' => $tokenType);
+            $tokens[] = array('area_id' => $area, 'token_id' => $tokenId, 'token_type' => $tokenType, 'team' => $this->getTokenTeam($tokenId));
         }
 
         self::debug("Tokens: ".json_encode($tokens));
@@ -698,6 +760,35 @@ class UnmatchedBattle extends Table
         }
 
         return $tokenType;
+    }
+
+    // Get the team of a hero
+    function getTokenTeam($token_name)
+    {
+        // Checks if the token_name contains a _ which would mean a sidekick
+        $separator = strpos($token_name, "_");
+        $tokenId = $token_name;
+        $tokenType = "";
+        
+        if ($separator !== false)
+        {
+            $hero = substr($token_name, 0, $separator);
+        }
+        else
+        {
+            $hero = $token_name;
+        }
+
+        $sql = "SELECT team FROM player WHERE hero = '".$hero."'" ;
+        $team = self::getCollectionFromDb( $sql );
+
+        self::debug("Team: ".json_encode($team));
+
+        $team = array_pop($team)['team'];
+
+        self::debug('Team for hero '.$hero.' is '.$team);
+
+        return $team;
     }
 
     function getHeroCards($hero)
@@ -883,17 +974,14 @@ class UnmatchedBattle extends Table
 //
     }
 
-    protected function getCurrentPlayerHero($currentPlayerId)
+    protected function getPlayerById($playerId)
     {   
         // Get information about players
-        $sql = "SELECT player_id id, player_score score, hero FROM player ";
-        $result['players'] = self::getCollectionFromDb( $sql );
-  
-        // TODO: Gather all information about current game situation (visible by player $current_player_id).
-
-        $hero = $result['players'][$currentPlayerId]['hero'];
+        $sql = "SELECT player_id id, player_score score, hero, team FROM player where player_id = ".$playerId;
+        $result = self::getCollectionFromDb( $sql ); 
+        $player = array_pop($result);
         
-        return $hero;
+        return $player;
     }
 
     // Returns the list of available heros for choosing
