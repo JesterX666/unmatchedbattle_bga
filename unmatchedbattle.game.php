@@ -176,11 +176,22 @@ class UnmatchedBattle extends Table
         self::debug("Player Info : ".json_encode($player));
         self::debug("Current Hero : ".$hero);
 
+        if ($hero != null) 
+        {
+            $result['playerHero'] = $hero;
+        }
+
         $state = $this->gamestate->state();
         if (($state['name'] == 'chooseHero') || ($state['name'] == 'chooseHeroNextPlayer'))
         {
                 // Which heros are available at the start of the game
                 $result['availableHeros'] = $this->getAvailableHeros();
+        }
+
+        if (($state['name'] == 'placeSidekicks') || ($state['name'] == 'placeSidekicksNextPlayer'))
+        {
+                // Which sidekicks the player has to place
+                $result['playerSidekicks'] = $this->getPlayerSidekicks($player);
         }
 
         $result['playerDeck'] = $this->getHeroCards($hero);
@@ -197,21 +208,13 @@ class UnmatchedBattle extends Table
         $result['playerHand'] = $cards;
         $result['tokensPlacement'] = $this->getTokensPlacement();
 
-        self::debug("Tokens Placement : ".json_encode($result['tokensPlacement']));
-
-        if ($hero != null) 
-        {
-            $result['playerSidekicks'] = $this->getPlayerSidekicks($player);
-            $result['playerHero'] = $hero;
-        }
-
-        self::debug("getAllData HERO : ".json_encode($result));
-
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
 
         $result['moveAmount'] = $this->getMoveAmount();
         $result['team'] = $player['team'];
+
+        self::debug("getAllData: ".json_encode($result));
   
         return $result;
     }
@@ -396,6 +399,111 @@ class UnmatchedBattle extends Table
         }
 
         return true;
+    }
+
+    function tokensMovementDone($tokensMovement)
+    {
+        self::debug("Tokens Movement: ".json_encode($tokensMovement));
+
+        if ($this->validateMovement($tokensMovement))
+        {
+            foreach($tokensMovement as $tokenMovement)
+            {
+                $sql = "UPDATE tokens SET area_id = ".$tokenMovement['area_id']." WHERE token_id = ".$tokenMovement['token'];
+                self::DbQuery( $sql );
+            }
+
+            $tokensPlacement = $this->getTokensPlacement();
+
+            $player_id = self::getActivePlayerId();
+
+            self::notifyAllPlayers( "placeTokens", clienttranslate( '${player_name} moved his fighters' ), array(
+                'player_id' => $player_id,
+                'player_name' => self::getActivePlayerName(),
+                'tokensPlacement' => $tokensPlacement
+            ) );
+
+            // Discard the boost card if any
+            $this->cards->moveAllCardsInLocation( 'played_'.$player_id, 'discard_'.$player_id);
+
+            $this->updatePlayerActions("M");
+
+            // Check if the player has played his two actions
+            $this->gamestate->nextState('checkPlayActionDone');
+        }
+    }
+
+    function validateMovement($tokensMovement)
+    {
+        // Get the amount of possible movements
+        $playerId = self::getCurrentPlayerId();
+        $moveAmount = $this->getMoveAmount();
+        self::debug("Move amount : ".$moveAmount);
+        
+        $tokensPlacement = $this->getTokensPlacement();
+
+        $impassablesAreas = array_filter($tokensPlacement, function($tokenPlacement) use ($playerId)
+        {
+            return $token['player_id'] == $playerId && $token['impassable'];
+        });
+
+        foreach($tokensMovement as $tokenMovement)
+        {
+            $initalPlacement = array_filter($tokensPlacement, function($tokenPlacement) use ($tokenMovement) 
+            {
+                return $tokenPlacement['token_id'] == $tokenMovement['token'];
+            });
+
+            self::debug("Initial placement : ".json_encode($initalPlacement));
+
+            self::debug("Area Id : ".$initialPlacement['area_id']);
+
+            $validAreas = $this->getAdjacentAreas($initialPlacement['area_id'], null, 1, $moveAmount, $impassablesAreas);
+        }
+
+
+        throw new feException("Invalid movement");
+        return true;
+    }
+
+    // Recursive function to get all the adjacent zones of an area
+    function getAdjacentAreas($startingArea, $areasFound, $currentDistance, $maxDistance, $impassablesAreas) {
+        if ($areasFound == null) {
+            $areasFound = array();
+        }
+
+        $boardId = $this->getGameStateValue('boardId');
+        $zones = $this->boards[$boardId]['zones'];
+
+        self::debug("Zones : ".json_encode($zones));
+
+        $exits = array_column($zones[$startingArea], 'exits');
+
+        self::debug("Exits : ".json_encode($exits));
+        
+        $exits = explode(',', $exits);
+
+        self::debug("Exits : ".json_encode($exits));
+                
+        foreach($exits as $exit)
+        {
+            /*
+            // Highlight all exits area that doesn't have a token in the ignore list
+            var area = document.querySelector('#area_' + exit);
+
+            if ((impassablesAreas == null) || (impassablesAreas.indexOf(area) == -1)) {
+                if (areasFound.indexOf(area) == -1) {
+                    areasFound.push(area);
+                }
+
+                if (currentDistance < maxDistance) {
+                    areasFound = this.getAdjacentAreas(area, areasFound, currentDistance + 1, maxDistance, impassablesAreas);
+                }
+            }
+            */
+        }
+
+        return $areasFound;
     }
 
     function playActionManeuverDrawCard()
@@ -685,9 +793,25 @@ class UnmatchedBattle extends Table
         $this->gamestate->nextState( 'placeHero' );
     }
 
+    function updatePlayerActions($currentAction)
+    {
+        $sql = "SELECT first_action, second_Action FROM player WHERE player_id = ".self::getActivePlayerId();
+        $playerActions = self::DbQuery( $sql );
+
+        self::debug("Player actions : ".json_encode($playerActions));        
+
+        $sql = "UPDATE player SET played_action = '".$currentAction."' WHERE player_id = ".self::getActivePlayerId();
+        self::DbQuery( $sql );
+    }
+
     // Check if the current player has finished his turn
     function checkPlayActionDone()
     {
+        $sql = "SELECT first_action, second_Action FROM player WHERE player_id = ".self::getActivePlayerId();
+        $playerActions = self::DbQuery( $sql );
+
+        self::debug("Player actions : ".json_encode($playerActions));
+
 
     }
 
@@ -723,7 +847,7 @@ class UnmatchedBattle extends Table
             $area = $token['area_id'];
             $tokenId = $token['token_name'];
             $tokenType = $this->getTokenType($tokenId);
-            $tokens[] = array('area_id' => $area, 'token_id' => $tokenId, 'token_type' => $tokenType, 'team' => $this->getTokenTeam($tokenId));
+            $tokens[] = array('area_id' => $area, 'token_id' => $tokenId, 'token_type' => $tokenType, 'team' => $this->getPlayerTeam());
         }
 
         self::debug("Tokens: ".json_encode($tokens));
@@ -779,6 +903,11 @@ class UnmatchedBattle extends Table
             $hero = $token_name;
         }
 
+        return getTeamForHero($hero);
+    }
+
+    function getTeamForHero($hero)
+    {      
         $sql = "SELECT team FROM player WHERE hero = '".$hero."'" ;
         $team = self::getCollectionFromDb( $sql );
 
@@ -787,8 +916,6 @@ class UnmatchedBattle extends Table
         $team = array_pop($team)['team'];
 
         self::debug('Team for hero '.$hero.' is '.$team);
-
-        return $team;
     }
 
     function getHeroCards($hero)

@@ -69,7 +69,6 @@
         $this->game->playActionManeuverDrawCard();
         self::ajaxResponse( );        
     }
-
     
     public function playBoostCard()
     {
@@ -78,6 +77,21 @@
         $this->game->playBoostCard($boostCardId);
         self::ajaxResponse( );        
     }
+    
+    public function playActionMoveDone()
+    {
+      self::setAjaxMode();     
+      $tokensMovement = self::getArg( "tokensMovement", AT_json, true );
+
+      self::debug("Tokens Movement: ".json_encode($tokensMovement));
+
+      // Sanitizes the input
+      $this->validateJSonAlphaNum($tokensMovement, "tokensMovement");
+
+      $this->game->tokensMovementDone($tokensMovement);
+
+      self::ajaxResponse( );        
+  }
 
     public function validateJSonAlphaNum($value, $argName = 'unknown')
     {

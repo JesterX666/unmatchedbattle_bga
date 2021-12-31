@@ -121,7 +121,7 @@ function (dojo, declare) {
             this.playerHero = gamedatas.playerHero;
             this.initializeCardDeck(gamedatas.playerDeck);
             this.addCardsToPlayerHand(gamedatas.playerHand);
-            this.placeTokens(gamedatas.tokensPlacement);
+            this.placeTokens(gamedatas.tokensPlacement);            
             this.placeSidekicksInPool(gamedatas.playerSidekicks);
             this.moveAmount = gamedatas.moveAmount;
             this.team = gamedatas.team;
@@ -194,6 +194,9 @@ function (dojo, declare) {
 
         placeSidekicksInPool: function (sidekicks) {
             this.sidekicks = sidekicks;
+
+            if (sidekicks == null)
+                return;
 
             Object.values(sidekicks).forEach(sidekick => {
                 var sideKickPoolItem = this.format_block('jstpl_sidekickPoolItem', {'sidekickPoolItemId' : 'placement_' + sidekick['token_id']});
@@ -304,6 +307,12 @@ function (dojo, declare) {
             }
         },
 
+        showMainGame: function () {
+            document.getElementById('availableHeros').style.display = 'none';
+            document.getElementById('sidekicks').style.display = 'none';
+            document.getElementById('mainGame').style.display = 'block';            
+        },
+
         onChangeHeroSelection: function (selection) {
             var items = this.availableHeros.getSelectedItems();
             if ((items.length == 1) && this.isCurrentPlayerActive()) {
@@ -363,19 +372,25 @@ function (dojo, declare) {
             switch( stateName ) {
                 case "chooseHero":
                     document.getElementById('availableHeros').style.display = 'block';
+                    document.getElementById('sidekicks').style.display = 'none';
                     document.getElementById('mainGame').style.display = 'none';
                     break;
                 case "placeSidekicks":
                     document.getElementById('availableHeros').style.display = 'none';
+                    document.getElementById('sidekicks').style.display = 'block';
                     document.getElementById('mainGame').style.display = 'block';
                     break;
                 case "playActionManeuver":
+                    this.showMainGame();
+
                     if (this.isCurrentPlayerActive()) {
                         this.addActionButton( 'playBoostCard', _('Play Boost Card'), 'onPlayBoostCard' ); 
                         this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
                     }
                     break;   
                 case "playActionMove":
+                    this.showMainGame();
+
                     if (this.isCurrentPlayerActive()) {
                         this.addActionButton( 'endManeuver', _('End Maneuver Action'), 'onEndManeuver' ); 
                     }
@@ -466,7 +481,7 @@ function (dojo, declare) {
             if (!this.isCurrentPlayerActive())
                 return;
 
-            if (event.target.getAttribute('data-team') != this.team)
+            if (!event.target.id.startsWith(this.playerHero))
                 return;
 
             var selected = event.target.classList.contains('tokenSelected');
@@ -535,15 +550,17 @@ function (dojo, declare) {
             selectedToken.removeClass('tokenSelected');
             this.removeAreaHighlights();
             
-            if (document.querySelectorAll(".sidekickPoolItem > .token").length == 0) {
-                var sidekicksArea = document.getElementById('sidekicks');
+            if (this.gamedatas.gamestate.name == 'placeSidekicks') {
+                if (document.querySelectorAll(".sidekickPoolItem > .token").length == 0) {
+                    var sidekicksArea = document.getElementById('sidekicks');
                 
-                if (sidekicksArea != undefined) {
-                    sidekicksArea.style.display = "none";
-                }
+                    if (sidekicksArea != undefined) {
+                        sidekicksArea.style.display = "none";
+                    }
 
-                if (!document.getElementById('sidekickPlacementConfirm')) {
+                    if (!document.getElementById('sidekickPlacementConfirm')) {
                     this.addActionButton( 'sidekickPlacementConfirm', _('Confirm'), 'onSidekickPlacementDone' ); 
+                    }
                 }
             }
         },
@@ -650,6 +667,19 @@ function (dojo, declare) {
         },
 
         onEndManeuver: function(evt) {
+            debugger;
+            if (this.checkAction('playActionMoveDone')) {
+                var playerTokens = document.querySelectorAll('[id^=' + this.playerHero + ']');
+
+                tokensMovement = [];
+                playerTokens.forEach(token => {
+                    var tokenMovementItem = { 'token': token.id, 'area_id': token.parentElement.id.split('_')[1] };
+                    tokensMovement.push(tokenMovementItem);
+                });
+
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionMoveDone.html', 
+                    { 'lock': true, 'tokensMovement': JSON.stringify(tokensMovement) }, this, function(result) {} );
+            }
         },
 
         onSkipBoostCard: function(evt) {
