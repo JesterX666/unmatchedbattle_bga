@@ -145,20 +145,11 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces'),
         "args" => "getPlayActionMoveArgs",
         "type" => "activeplayer",
-        "possibleactions" => array( "playActionMoveDone" ),
-        "transitions" => array( "playActionMoveDone" => 12 )
+        "possibleactions" => array( "checkPlayActionDone" ),
+        "transitions" => array( "checkPlayActionDone" => 14 )
     ),
 
     12 => array(
-        "name" => "playActionMoveDone",
-        "description" => clienttranslate('${actplayer} moved his fighters'),
-        "descriptionmyturn" => clienttranslate('${you} moved your fighters'),
-        "type" => "activeplayer",
-        "possibleactions" => array( "checkPlayActionDone" ),
-        "transitions" => array( "checkPlayActionDone" => 12 )
-    ),
-
-    13 => array(
         "name" => "playActionScheme",
         "description" => "",
         "type" => "game",
@@ -166,7 +157,7 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
     
-    14 => array(
+    13 => array(
         "name" => "playActionAttack",
         "description" => "",
         "type" => "game",
@@ -174,12 +165,12 @@ $machinestates = array(
         "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
     ),
         
-    15 => array(
+    14 => array(
         "name" => "checkPlayActionDone",
         "description" => "",
         "type" => "game",
         "action" => "checkPlayActionDone",
-        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+        "transitions" => array( "playAction" => 9 )
     ),            
 
 /*

@@ -732,6 +732,7 @@ function (dojo, declare) {
             dojo.subscribe( 'receiveSidekicks', this, "notif_receiveSidekicks" );
             dojo.subscribe( 'receiveCards', this, "notif_receiveCards" );
             dojo.subscribe( 'moveAmount', this, "notif_moveAmount" );
+            dojo.subscribe( 'playAction', this, "notif_playAction" );
 
             this.notifqueue.setIgnoreNotificationCheck( 'performManeuver', (notif) => (notif.args.player_id == this.player_id) );
         },  
@@ -797,6 +798,13 @@ function (dojo, declare) {
             if (notif.args.player_id == this.player_id) {
                 this.moveAmount = notif.args.moveAmount;
             }
+        },
+
+        notif_playAction: function( notif )
+        {
+            // Nothing really to do here
+            console.log( 'notif_playAction' );
+            console.log( notif );
         }
    });             
 });
