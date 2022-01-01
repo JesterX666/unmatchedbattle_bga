@@ -50,6 +50,15 @@
         self::ajaxResponse( );        
     }
 
+    public function aliceChooseSize()
+    {
+        self::setAjaxMode();     
+        $size = self::getArg( "size", AT_alphanum, true );
+        $this->game->aliceChooseSize($size);
+
+        self::ajaxResponse( );        
+    }
+
     public function sidekickPlacementDone()
     {
         self::setAjaxMode();     

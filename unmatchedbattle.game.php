@@ -312,6 +312,37 @@ class UnmatchedBattle extends Table
         $this->gamestate->nextState( 'chooseHeroNextPlayer' );
     }
 
+    function aliceChooseSize ( $size )
+    {
+        self::checkAction('chooseSize');
+        
+        $player_id = self::getActivePlayerId();
+
+        if ($size == "sizeBig")
+        {
+            $sizeLabel = clienttranslate("Big");
+            $sizeValue = "B";
+        }
+        else
+        {
+            $sizeLabel = clienttranslate("Small");
+            $sizeValue = "S";
+        }
+
+        // Set the choosen hero in the database
+        $sql = "UPDATE player SET alice_size = '".$sizeValue."' WHERE player_id = ".$player_id;
+        self::DbQuery( $sql );
+
+        // Notify all players about the hero chosen and the remaining available heroes
+        self::notifyAllPlayers( "sizeSelected", clienttranslate( '${player_name} choosed Alice to be ${sizeLabel}' ), array(
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+            'sizeLabel' => $sizeLabel
+        ) );
+
+        $this->gamestate->nextState( 'everyoneChoosedHero' );
+    }
+
     function sidekickPlacementDone($sidekicksPlacement)
     {
         self::checkAction('placeSidekicks');
@@ -677,12 +708,33 @@ class UnmatchedBattle extends Table
     // Verifies if every player has choosen a hero
     function checkEveryoneChoosedHero()
     {
-        $sql = "SELECT player_id id, hero FROM player WHERE hero is null";
-        $playerHero = self::getCollectionFromDb( $sql );
+        $sql = "SELECT player_id id, hero FROM player";
+        $playersHeros = self::getCollectionFromDb( $sql );
 
-        if (count($playerHero) == 0) {
+        $playersWithoutHero = array_filter($playersHeros, function($player) 
+        {
+            return $player['hero'] == null;
+        });
+
+        if (count($playersWithoutHero) == 0) {
             self::debug("Everyone choosed their hero");
-            $this->gamestate->nextState( 'everyoneChoosedHero' );
+
+            // If one player choosed Alice, it's now time to choose if she starts big or small
+            $alicePlayer = array_filter($playersHeros, function($player) {
+                return $player['hero'] == 'Alice';
+            });
+
+            self::debug("Alice player : ".json_encode($alicePlayer));
+
+            if (count($alicePlayer) == 0)
+            {
+                $this->gamestate->nextState( 'everyoneChoosedHero' );
+            }
+            else
+            {
+                $this->gamestate->changeActivePlayer( array_pop($alicePlayer)['id'] );
+                $this->gamestate->nextState('aliceChooseSize');
+            }
         }
         else {
             $this->activeNextPlayer();

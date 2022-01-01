@@ -77,7 +77,7 @@ $machinestates = array(
         "description" => "",
         "type" => "game",
         "action" => "checkEveryoneChoosedHero",
-        "transitions" => array( "chooseHero" => 2, "everyoneChoosedHero" => 4 )
+        "transitions" => array( "chooseHero" => 2, "everyoneChoosedHero" => 4, "aliceChooseSize" => 15 )
     ), 
     
 	4 => array(
@@ -171,7 +171,16 @@ $machinestates = array(
         "type" => "game",
         "action" => "checkPlayActionDone",
         "transitions" => array( "playAction" => 9 )
-    ),            
+    ), 
+    
+    15 => array(
+    	"name" => "aliceChooseSize",
+    	"description" => clienttranslate('${actplayer} must choose if Alice will be a big or small'),
+    	"descriptionmyturn" => clienttranslate('${you} must choose if Alice will be a big or small'),
+    	"type" => "activeplayer",
+    	"possibleactions" => array( "chooseSize" ),
+    	"transitions" => array( "everyoneChoosedHero" => 4 )
+    ),
 
 /*
     Examples:

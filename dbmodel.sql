@@ -31,7 +31,7 @@
 
 
 -- Add a the hero choice to the player table
-ALTER TABLE `player` ADD `hero` VARCHAR(20), ADD `team` INT(1), ADD `first_action` VARCHAR(1), ADD `second_action` VARCHAR(1);
+ALTER TABLE `player` ADD `hero` VARCHAR(20), ADD `team` INT(1), ADD `first_action` VARCHAR(1), ADD `second_action` VARCHAR(1), ADD `alice_size` VARCHAR(1);
 
 -- Cards and their placement
 CREATE TABLE IF NOT EXISTS `cards` (

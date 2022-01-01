@@ -379,6 +379,15 @@ function (dojo, declare) {
                     document.getElementById('sidekicks').style.display = 'none';
                     document.getElementById('mainGame').style.display = 'none';
                     break;
+                case "aliceChooseSize":
+                    document.getElementById('availableHeros').style.display = 'none';
+                    document.getElementById('sidekicks').style.display = 'none';
+                    document.getElementById('mainGame').style.display = 'none';
+                    if (this.isCurrentPlayerActive()) {
+                        this.addActionButton( 'sizeSmall', _('Small'), 'onAliceSizeChoose' ); 
+                        this.addActionButton( 'sizeBig', _('Big'), 'onAliceSizeChoose' );
+                    }
+                    break;
                 case "placeSidekicks":
                     document.getElementById('availableHeros').style.display = 'none';
                     document.getElementById('sidekicks').style.display = 'block';
@@ -620,6 +629,14 @@ function (dojo, declare) {
         },        
         
         */
+        onAliceSizeChoose: function(evt) {
+            debugger;
+            if (this.checkAction('chooseSize')) {
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/aliceChooseSize.html', 
+                    { 'lock': true, 'size': evt.target.id }, this, function(result) {} );
+            }
+        },
+
         onPlayActionManeuver: function(evt) {
             if (this.checkAction('playAction')) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionManeuverDrawCard.html', 
