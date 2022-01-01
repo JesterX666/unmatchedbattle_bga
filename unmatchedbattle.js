@@ -164,6 +164,10 @@ function (dojo, declare) {
         moveToken: function (token, newArea) {
             debugger;
 
+            // TODO Animate this
+
+            var newAreaElement = document.getElementById('area_' + newArea);
+            newAreaElement.append(token);
         },
 
         placeTokens: function (tokensPlacement) {

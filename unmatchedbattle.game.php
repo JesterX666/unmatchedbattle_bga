@@ -583,18 +583,31 @@ class UnmatchedBattle extends Table
 
         self::debug("Hero : ".$hero." played boost card: ".$boostCardId);
 
-        $card = $this->cards->getCard($boostCardId);
-
-        $this->cards->moveCard( $boostCardId, 'played_'.$playerId );
+        if ($boostCardId != 0)
+        {
+            $card = $this->cards->getCard($boostCardId);
+            $this->cards->moveCard( $boostCardId, 'played_'.$playerId );
+        }
 
         $moveAmount = $this->getMoveAmount();
 
-        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the ${cardName} card as a boost andcan move ${moveAmount} area per fighters' ), array(
-            'player_id' => $playerId,
-            'player_name' => self::getActivePlayerName(),
-            'cardName' => $this->getCardByInternalId($card['type_arg'])['name'],
-            'moveAmount' => $moveAmount
-        ));
+        if ($boostCardId == 0)
+        {
+            self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} declined to play a boost card and can move ${moveAmount} area per fighters' ), array(
+                'player_id' => $playerId,
+                'player_name' => self::getActivePlayerName(),
+                'moveAmount' => $moveAmount
+            ));
+        }
+        else
+        {
+            self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the ${cardName} card as a boost and can move ${moveAmount} area per fighters' ), array(
+                'player_id' => $playerId,
+                'player_name' => self::getActivePlayerName(),
+                'cardName' => $this->getCardByInternalId($card['type_arg'])['name'],
+                'moveAmount' => $moveAmount
+            ));
+        }        
 
         $this->gamestate->nextState('playActionMove');
     }
@@ -862,9 +875,9 @@ class UnmatchedBattle extends Table
 
         if (count($playerActions) > 0)
         {
-            resetPlayerActions();
+            $this->resetPlayerActions();
 
-            self::notifyAllPlayers( "placeTokens", clienttranslate( '${player_name} finished is turn' ), array(
+            self::notifyAllPlayers( "playAction", clienttranslate( '${player_name} finished is turn' ), array(
                 'player_id' => self::getActivePlayerId(),
                 'player_name' => self::getActivePlayerName(),
             ) );
@@ -873,7 +886,7 @@ class UnmatchedBattle extends Table
         }
         else
         {
-            self::notifyAllPlayers( "placeTokens", clienttranslate( '${player_name} must play his second action' ), array(
+            self::notifyAllPlayers( "playAction", clienttranslate( '${player_name} must play his second action' ), array(
                 'player_id' => self::getActivePlayerId(),
                 'player_name' => self::getActivePlayerName(),
             ) );            

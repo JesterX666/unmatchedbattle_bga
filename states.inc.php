@@ -145,7 +145,7 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces'),
         "args" => "getPlayActionMoveArgs",
         "type" => "activeplayer",
-        "possibleactions" => array( "checkPlayActionDone" ),
+        "possibleactions" => array( "playActionMoveDone" ),
         "transitions" => array( "checkPlayActionDone" => 14 )
     ),
 

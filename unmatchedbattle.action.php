@@ -80,7 +80,7 @@
     
     public function playActionMoveDone()
     {
-      self::setAjaxMode();     
+      self::setAjaxMode();
       $tokensMovement = self::getArg( "tokensMovement", AT_json, true );
 
       self::debug("Tokens Movement: ".json_encode($tokensMovement));
@@ -90,7 +90,7 @@
 
       $this->game->tokensMovementDone($tokensMovement);
 
-      self::ajaxResponse( );        
+      self::ajaxResponse( );
   }
 
     public function validateJSonAlphaNum($value, $argName = 'unknown')
