@@ -214,6 +214,9 @@ class UnmatchedBattle extends Table
         $result['moveAmount'] = $this->getMoveAmount();
         $result['team'] = $player['team'];
 
+        // Player panels
+        $result['playerPanels'] = $this->getPlayersPanels();
+
         self::debug("getAllData: ".json_encode($result));
   
         return $result;
@@ -351,9 +354,18 @@ class UnmatchedBattle extends Table
         {
             self::debug("Sidekick placement: ".json_encode($sidekicksPlacement));
 
-            foreach($sidekicksPlacement as $sidekick => $sidekickPlacement)
-            {            
-                $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$sidekickPlacement['sidekick']."', ".$sidekickPlacement['area_id'].")";
+            foreach($sidekicksPlacement as $sidekickPlacement)
+            {              
+                // Infer the hero name from the sidekick id
+                $internal_id = $sidekickPlacement['sidekick'];
+                $hero = explode("_", $internal_id)[0];
+
+                $sidekick = array_filter($this->heros[$hero]['sidekicks'], function($sidekick) use ($internal_id) {
+                    return $sidekick['internal_id'] == $internal_id;
+                });
+
+                $health = array_pop($sidekick)['health'];
+                $sql = "INSERT INTO tokens (token_name, area_id, health) VALUES ('".$sidekickPlacement['sidekick']."', ".$sidekickPlacement['area_id'].", ".$health.")";
                 self::DbQuery( $sql );
             }
 
@@ -997,8 +1009,12 @@ class UnmatchedBattle extends Table
                 {
                     self::debug("Hero ".$playerHero['hero']." is in starting area ".$key);
                     $startingArea = $zone;
+
+                    $playerHeroObject = $this->heros[$playerHero['hero']];
+                    self::debug("Player Hero Object : ".json_encode($playerHeroObject));
                     
-                    $sql = "INSERT INTO tokens (token_name, area_id) VALUES ('".$playerHero['hero']."', ".$key.")";
+                    $health = $playerHeroObject['health'];
+                    $sql = "INSERT INTO tokens (token_name, area_id, health) VALUES ('".$playerHero['hero']."', ".$key.", ".$health.")";
                     self::DbQuery( $sql );               
                 }
             }                            
@@ -1120,7 +1136,7 @@ class UnmatchedBattle extends Table
             ) );            
         }
 
-        $this->gamestate->nextState('playAction');
+        $this->gamestate->nextState('playAction');        
     }
 
     
@@ -1208,6 +1224,51 @@ class UnmatchedBattle extends Table
         }
 
         return $tokenType;
+    }
+
+    function getPlayersPanels()
+    {
+        $sql = "SELECT player_id, hero, team, alice_size FROM player";
+        $players = self::getCollectionFromDb( $sql );
+
+        $sql = "SELECT token_name, health FROM tokens";
+        $tokens = self::getCollectionFromDb( $sql );  
+
+        self::debug("Players: ".json_encode($players));
+
+        $playersPanels = array();
+
+        foreach($players as $player)
+        {
+            self::debug("Tokens: ".json_encode($tokens));
+            $playerTokens = array_filter($tokens, function($token) use ($player)
+            {
+                return explode("_", $token['token_name'])[0] == $player['hero'];
+            });
+
+            $tokensStatus = array();
+            foreach($playerTokens as $token)
+            {
+                array_push($tokensStatus, array('token_id' => $token['token_name'], 'health' => $token['health']));
+            }
+
+            $playerPanel = array(
+                'player_id' => $player['player_id'],
+                'hero' => $player['hero'],
+                'team' => $player['team'],
+                'tokens' => $tokensStatus
+            );
+
+            if ($player['hero'] == 'Alice')
+            {
+                $playerPanel['alice_size'] = $player['alice_size'];
+            }
+
+            array_push($playersPanels, $playerPanel);
+        }
+
+        self::debug("Players Panels: ".json_encode($playersPanels));
+        return $playersPanels;
     }
 
     function getPlayerTeam($player_id)

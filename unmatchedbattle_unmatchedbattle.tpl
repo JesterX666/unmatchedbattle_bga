@@ -74,6 +74,8 @@
 var jstpl_sidekickPoolItem = '<div id="${sidekickPoolItemId}" class="sidekickPoolItem"></div>';
 var jstpl_token = '<div id="${internalId}" class="token ${tokenType}" draggable="true" data-team="${team}"></div>';
 
+var jstpl_player_board = '<div class="cp_board"><div>Hello Mother fuckcer</div><span id="stonecount">0</span></div>';
+
 /*
 // Example:
 var jstpl_some_game_item='<div class="my_game_item" id="my_game_item_${MY_ITEM_ID}"></div>';

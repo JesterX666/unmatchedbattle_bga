@@ -47,5 +47,6 @@ CREATE TABLE IF NOT EXISTS `cards` (
 CREATE TABLE IF NOT EXISTS `tokens` (
   `token_name` varchar(20) NOT NULL,
   `area_id` int(4) NOT NULL,
+  `health` int(2) NOT NULL,
   PRIMARY KEY (`token_name`, `area_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

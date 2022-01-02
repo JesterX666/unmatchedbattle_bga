@@ -125,6 +125,16 @@ function (dojo, declare) {
             this.placeSidekicksInPool(gamedatas.playerSidekicks);
             this.moveAmount = gamedatas.moveAmount;
             this.team = gamedatas.team;
+
+            // Setting up player boards
+            for( var player_id in gamedatas.players )
+            {
+                var player = gamedatas.players[player_id];
+                                     
+                // Setting up players boards if needed
+                var player_board_div = $('player_board_'+player_id);
+                dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );
+            }
         },
 
         initializeCardDeck: function (cards) {
@@ -388,6 +398,7 @@ function (dojo, declare) {
                     document.getElementById('mainGame').style.display = 'none';
                     break;
                 case "aliceChooseSize":
+                    debugger;
                     document.getElementById('availableHeros').style.display = 'none';
                     document.getElementById('sidekicks').style.display = 'none';
                     document.getElementById('mainGame').style.display = 'none';
@@ -400,6 +411,9 @@ function (dojo, declare) {
                     document.getElementById('availableHeros').style.display = 'none';
                     document.getElementById('sidekicks').style.display = 'block';
                     document.getElementById('mainGame').style.display = 'block';
+                    break;
+                case "playAction":
+                    this.showMainGame();
                     break;
                 case "playActionManeuver":
                     this.showMainGame();
