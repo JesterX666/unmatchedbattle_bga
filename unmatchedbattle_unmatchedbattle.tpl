@@ -74,7 +74,8 @@
 var jstpl_sidekickPoolItem = '<div id="${sidekickPoolItemId}" class="sidekickPoolItem"></div>';
 var jstpl_token = '<div id="${internalId}" class="token ${tokenType}" draggable="true" data-team="${team}"></div>';
 
-var jstpl_player_board = '<div class="cp_board"><div>Hello Mother fuckcer</div><span id="stonecount">0</span></div>';
+var jstpl_player_board = '<div>${blockFighters}</div>';
+var jstpl_player_board_fighter = '<div>${fighterName}<span id="health" class="fighterHealth">${fighterHealth}</span></div>';
 
 /*
 // Example:

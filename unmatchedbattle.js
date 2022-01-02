@@ -130,10 +130,21 @@ function (dojo, declare) {
             for( var player_id in gamedatas.players )
             {
                 var player = gamedatas.players[player_id];
-                                     
+                var playerPanel = gamedatas.playersPanels.find( panel => panel['player_id'] == player_id );
+                                    
                 // Setting up players boards if needed
-                var player_board_div = $('player_board_'+player_id);
-                dojo.place( this.format_block('jstpl_player_board', player ), player_board_div );
+                var player_board_container = $('player_board_'+player_id);
+
+                var blockFighters =[];
+
+                playerPanel['tokens'].forEach(token => {                   
+                    var blockFighter = this.format_block('jstpl_player_board_fighter', { 'fighterName': token.token_id, 'fighterHealth': token.health });
+                    blockFighters.push(blockFighter);
+                });
+
+                var player_board = this.format_block('jstpl_player_board', {'blockFighters': blockFighters});
+
+                dojo.place(player_board, player_board_container);
             }
         },
 
@@ -166,15 +177,12 @@ function (dojo, declare) {
         },
 
         createToken: function (token, area) {
-            debugger;
             var tokenBlock =  this.format_block( 'jstpl_token', {internalId: token['token_id'], tokenType: 'token' + token['token_type'], team: token['team']} );
             var tokenElement = dojo.place(tokenBlock, area);
             this.connect(tokenElement, 'onclick', 'onTokenClick');
         },
 
         moveToken: function (token, newArea) {
-            debugger;
-
             // TODO Animate this
 
             var newAreaElement = document.getElementById('area_' + newArea);
@@ -247,8 +255,6 @@ function (dojo, declare) {
 
         // Will highlight all areas immediatly adjacent to the selected area
         highlightAdjacentAreas: function(area, distance, impassablesAreas) {
-            debugger;
-
             // Remove the highlights of all areas
             this.removeAreaHighlights();
             

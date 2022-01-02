@@ -214,8 +214,9 @@ class UnmatchedBattle extends Table
         $result['moveAmount'] = $this->getMoveAmount();
         $result['team'] = $player['team'];
 
+        self::debug("This->heros : ".json_encode($this->heros));
         // Player panels
-        $result['playerPanels'] = $this->getPlayersPanels();
+        $result['playersPanels'] = $this->getPlayersPanels();
 
         self::debug("getAllData: ".json_encode($result));
   
@@ -1240,16 +1241,18 @@ class UnmatchedBattle extends Table
 
         foreach($players as $player)
         {
-            self::debug("Tokens: ".json_encode($tokens));
-            $playerTokens = array_filter($tokens, function($token) use ($player)
+            $hero = $player['hero'];
+            $playerTokens = array_filter($tokens, function($token) use ($hero)
             {
-                return explode("_", $token['token_name'])[0] == $player['hero'];
+                return explode("_", $token['token_name'])[0] == $hero;
             });
 
             $tokensStatus = array();
             foreach($playerTokens as $token)
             {
-                array_push($tokensStatus, array('token_id' => $token['token_name'], 'health' => $token['health']));
+                $fighterName = $this->getFighterNameFromTokenId($token['token_name']);
+                self::debug("Fighter name : ".$fighterName);
+                array_push($tokensStatus, array('token_id' => $fighterName, 'health' => $token['health']));
             }
 
             $playerPanel = array(
@@ -1259,7 +1262,7 @@ class UnmatchedBattle extends Table
                 'tokens' => $tokensStatus
             );
 
-            if ($player['hero'] == 'Alice')
+            if ($hero == 'Alice')
             {
                 $playerPanel['alice_size'] = $player['alice_size'];
             }
@@ -1269,6 +1272,22 @@ class UnmatchedBattle extends Table
 
         self::debug("Players Panels: ".json_encode($playersPanels));
         return $playersPanels;
+    }
+
+    function getFighterNameFromTokenId($token_id)
+    {
+        if (strpos($token_id, "_") == 0)
+            return $token_id;
+        else
+        {                  
+            $hero = explode("_", $token_id)[0];
+            $sidekickObj = array_filter($this->heros[$hero]['sidekicks'] , function($sidekick) use ($token_id)
+            {                        
+                return $sidekick['internal_id'] == $token_id;
+            });
+
+            return array_pop($sidekickObj)['name'];
+        }
     }
 
     function getPlayerTeam($player_id)
