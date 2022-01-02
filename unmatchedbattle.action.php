@@ -87,6 +87,14 @@
         self::ajaxResponse( );        
     }
     
+    public function playSchemeCard()
+    {
+        self::setAjaxMode();
+        $schemeCardId = self::getArg( "schemeCard", AT_posint, true );
+        $this->game->playSchemeCard($schemeCardId);
+        self::ajaxResponse( );        
+    }  
+  
     public function playActionMoveDone()
     {
       self::setAjaxMode();

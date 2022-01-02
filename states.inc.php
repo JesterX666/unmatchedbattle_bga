@@ -126,7 +126,7 @@ $machinestates = array(
         "description" => clienttranslate('${actplayer} must play an action'),
         "descriptionmyturn" => clienttranslate('${you} must play an action'),
         "type" => "activeplayer",
-        "possibleactions" => array( "playAction" ),
+        "possibleactions" => array( "playActionManeuver", "playActionScheme", "playActionAttack" ),
         "transitions" => array( "playActionManeuver" => 10, "playActionScheme" => 12, "playActionAttack" => 13 )
     ),
 
@@ -153,8 +153,16 @@ $machinestates = array(
         "name" => "playActionScheme",
         "description" => "",
         "type" => "game",
-        "action" => "checkEveryonePlacedSidekicks",
-        "transitions" => array( "placeSidekicks" => 7, "playAction" => 9 )
+        "action" => "playActionScheme",
+        "transitions" => array ( 
+            "checkPlayActionDone" => 14,
+            "moveFighter" => 16,
+            "chooseCards" => 17,
+            "chooseZone" => 18,
+            "moveAnyFighters" => 19,
+            "chooseFighter" => 20,
+            "moveFightersNoImpassable" => 21
+        )
     ),
     
     13 => array(
@@ -180,6 +188,60 @@ $machinestates = array(
     	"type" => "activeplayer",
     	"possibleactions" => array( "chooseSize" ),
     	"transitions" => array( "everyoneChoosedHero" => 4 )
+    ),
+
+    16 => array(
+        "name" => "moveFighter",
+        "description" => clienttranslate('${actplayer} may move ${fighterName} up to ${moveAmount} spaces'),
+        "descriptionmyturn" => clienttranslate('${you} may move ${fighterName} up to ${moveAmount} spaces'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "movementDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
+    ),
+
+    17 => array(
+        "name" => "chooseCards",
+        "description" => clienttranslate('${actplayer} must choose ${numberCards} cards'),
+        "descriptionmyturn" => clienttranslate('${you} must choose ${numberCards} cards'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "chooseCardsDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
+    ),
+
+    18 => array(
+        "name" => "chooseZone",
+        "description" => clienttranslate('${actplayer} must choose a zone within ${range} of ${fighterName}'),
+        "descriptionmyturn" => clienttranslate('${you} must choose a zone within ${range} of ${fighterName}'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "chooseZoneDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
+    ),
+
+    19 => array(
+        "name" => "moveAnyFighters",
+        "description" => clienttranslate('${actplayer} may move each fighters up to ${moveAmount} spaces (including enemies)'),
+        "descriptionmyturn" => clienttranslate('${you} may move each fighters up to ${moveAmount} spaces (including enemies)'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "movementAllDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
+    ),
+
+    20 => array(
+        "name" => "chooseFighter",
+        "description" => clienttranslate('${actplayer} may choose a fighter up to ${moveAmount} spaces of ${fighterName}'),
+        "descriptionmyturn" => clienttranslate('${you} may choose a fighter up to ${moveAmount} spaces of ${fighterName}'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "chooseFighterDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
+    ),
+
+    21 => array(
+        "name" => "moveFightersNoImpassable",
+        "description" => clienttranslate('${actplayer} may move his fighters up to ${moveAmount} spaces, ignoring opposing fighters'),
+        "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces, ignoring opposing fighters'),
+        "type" => "activeplayer",
+        "possibleactions" => array( "movementDone" ),
+        "transitions" => array( "placeHeroNextPlayer" => 17 )
     ),
 
 /*

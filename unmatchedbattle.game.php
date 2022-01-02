@@ -576,7 +576,7 @@ class UnmatchedBattle extends Table
 
     function playActionManeuverDrawCard()
     {
-        self::checkAction('playAction');
+        self::checkAction('playActionManeuver');
 
         $playerId = self::getActivePlayerId();
         $hero = $this->getPlayerById($playerId)['hero'];
@@ -641,6 +641,182 @@ class UnmatchedBattle extends Table
         }        
 
         $this->gamestate->nextState('playActionMove');
+    }
+
+    function playSchemeCard($schemeCardId)
+    {
+        $player_id = self::getActivePlayerId();
+        self::debug("Play scheme card: ".$schemeCardId);
+        self::checkAction('playActionScheme');
+        $this->cards->moveCard( $schemeCardId, 'played_'.$player_id );
+        $this->gamestate->nextState('playActionScheme');
+    }
+
+    function playActionScheme()
+    {        
+        $player_id = self::getActivePlayerId();
+        $card = $this->cards->getCardOnTop( 'played_'.$player_id );
+
+        if ($card == null)
+            throw new feException("No card on top of the played stack");
+
+        self::debug("Play scheme card: ".json_encode($card));
+
+        switch($card['type_arg'])
+        {
+            case 105: // Eat Me
+                $this->schemeEatMe();
+                break;
+            case 107: // Drink Me
+                $this->schemeDrinkMe();
+                break;
+            case 206: // The Lady of the Lake
+                $this->schemeTheLadyOfTheLake();
+                break;
+            case 207: // Prophecy
+                $this->schemeProphecy();
+                break;
+            case 210: // Restless Spirits
+                $this->schemeRestlessSpirits();
+                break;
+            case 211: // Command the Storms
+                $this->schemeCommandTheStorms();
+                break;
+            case 302: // A Momentary Glance
+                $this->schemeAMomentaryGlance();
+                break;
+            case 306: // Winged Frenzy
+                $this->schemeWingedFrenzy();
+                break;
+            case 403: // Riches Beyond Compare
+                $this->schemeRichesBeyondCompare();
+                break;            
+        }
+    }
+
+    function schemeEatMe()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('moveFighter');
+    }
+    
+    function schemeDrinkMe()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('checkPlayActionDone');
+    }
+
+    function schemeTheLadyOfTheLake()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('checkPlayActionDone');
+    }
+    
+    function schemeProphecy()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('chooseCards');
+    }
+
+    function schemeRestlessSpririts()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('chooseZone');
+    }
+    
+    function schemeCommandTheStorms()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('moveAnyFighters');
+    }
+
+    function schemeAMomentaryGlance()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('chooseFighter');
+    }
+    
+    function schemeWingedFrenzy()
+    {
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
+            'player_id' => $playerId,
+            'player_name' => self::getActivePlayerName(),
+            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+        ));
+
+        $this->gamestate->nextState('moveFightersNoImpassable');
+    }
+
+    function schemeRichesBeyondCompare()
+    {
+        $player_id = self::getActivePlayerId();
+        $hero = $this->getPlayerById($player_id)['hero'];
+
+        // draw 3 card
+        $cards = array();
+        $cardsPick = $this->cards->pickCards(3, 'deck_'.$hero, $player_id);
+        
+        $cardsNames = array();
+        foreach($cardsPick as $card)
+        {
+            array_push($cards, array ("id" => $card['id'], "internal_id" => $card['type_arg']));
+
+            $cardName = $this->getCardByInternalId($card['type_arg'])['name'];
+
+            array_push($cardsNames, $cardName);
+            self::debug("Riches Beyond Compare draw card: ".json_encode($card));
+        }
+                
+        // TODO APPLY FATIGUE DAMAGE
+        
+        self::notifyPlayer( $player_id, "receiveCards", clienttranslate( 'You played the Riches Beyond Compare scheme card.  You received: ${cardsNames}' ), array(
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+            'cards' => $cards,
+            'cardsNames' => implode(", ", $cardsNames)
+        ));
+                
+        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Riches Beyond Compare scheme card' ), array(
+            'player_id' => $player_id,
+            'player_name' => self::getActivePlayerName(),
+        ));
+
+        $this->gamestate->nextState('checkPlayActionDone');
     }
 
     function getPlayActionMoveArgs()

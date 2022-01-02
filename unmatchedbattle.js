@@ -140,7 +140,7 @@ function (dojo, declare) {
             Object.values(cards).forEach(card => {
                 // We initialise the card item type to the stock
                 this.playerHand.addItemType(card['internal_id'], 0, g_gamethemeurl + 'img/Cards/' + card['image']);
-            });        
+            });
 
             this.gameHelper = new ebg.expandablesection();
             this.gameHelper.create(this, "gameHelper");
@@ -151,7 +151,8 @@ function (dojo, declare) {
             cards.forEach(card=> {
                 // We add the card to the stock
                 this.playerHand.addToStockWithId(card.internal_id, card.id);
-            });            
+            });
+            this.playerHand.updateDisplay()
         },
 
         createToken: function (token, area) {
@@ -302,6 +303,7 @@ function (dojo, declare) {
         },
 
         resetActionButtonsAction: function () {
+            debugger;
             this.removeActionButtons();
 
             if (this.isCurrentPlayerActive()) {
@@ -309,6 +311,12 @@ function (dojo, declare) {
                 this.addActionButton( 'playActionScheme', _('Scheme'), 'onPlayActionScheme' ); 
                 this.addActionButton( 'playActionAttack', _('Attack'), 'onPlayActionAttack' ); 
             }
+        },
+
+        resetActionTitle: function () {
+            debugger;
+            this.gamedatas.gamestate.descriptionmyturn = _('${you} must play an action');
+            this.updatePageTitle();
         },
 
         showMainGame: function () {
@@ -638,20 +646,25 @@ function (dojo, declare) {
         },
 
         onPlayActionManeuver: function(evt) {
-            if (this.checkAction('playAction')) {
+            if (this.checkAction('playActionManeuver')) {
                 this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionManeuverDrawCard.html', 
                     { 'lock': true }, this, function(result) {} );
             }
         },
 
         onPlayActionScheme:  function(evt) {
-            if (this.checkAction('playAction')) {
+            if (this.checkAction('playActionScheme')) {
+                this.gamedatas.gamestate.descriptionmyturn = _('${you} must choose the Scheme card to play');
+                this.updatePageTitle();
 
+                this.removeActionButtons();
+                this.addActionButton("playActionSchemeConfirm", _("Confirm"), "onPlayActionSchemeConfirm");
+                this.addActionButton("playActionSchemeCancel", _("Cancel"), "onPlayActionSchemeCancel");
             }
         },
 
         onPlayActionAttack: function(evt) {
-            if (this.checkAction('playAction')) {
+            if (this.checkAction('playActionAttack')) {
                 
             }
         },
@@ -714,10 +727,37 @@ function (dojo, declare) {
             // Nothing to do here
         },
 
-        onCancel: function(evt) {
+        onPlayActionSchemeConfirm: function(evt) {
+            if (this.checkAction('playActionScheme')) {
+                var cardsPlayed = this.playerHand.getSelectedItems();
+
+                if (cardsPlayed.length != 1) {
+                    this.showMessage( "You must select a scheme card to play", "error" );
+                    return;
+                }
+
+                var cardDefinition = Object.values(this.playerDeck).find(card => 
+                {  
+                    return card.internal_id == cardsPlayed[0].type;
+                });
+
+                if ((cardDefinition == null) || (cardDefinition.action != 'S')) {
+                    this.showMessage( "Invalid card", "error" );
+                    return;
+                }
+
+                this.playerHand.removeFromStockById(cardsPlayed[0]['id']);
+
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playSchemeCard.html',
+                    { 'lock': true, 'schemeCard': cardsPlayed[0]['id'] }, this, function(result) {} );
+            }
         },
 
-        onMoveDone: function(evt) {
+        onPlayActionSchemeCancel: function(evt) {
+            if (this.checkAction('playActionScheme')) {
+                this.resetActionTitle();
+                this.resetActionButtonsAction();
+            }
         },
 
         ///////////////////////////////////////////////////
