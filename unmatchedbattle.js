@@ -446,7 +446,7 @@ function (dojo, declare) {
                         this.addActionButton( 'skipBoostCard', _('Skip'), 'onSkipBoostCard' ); 
                     }
                     break;   
-                case "playActionMove":
+                case "actionMove":
                     this.showMainGame();
 
                     if (this.isCurrentPlayerActive()) {
@@ -556,7 +556,7 @@ function (dojo, declare) {
                     case 'placeSidekicks':
                         this.highlightSameColor(this.findHeroArea());
                         break;
-                    case 'playActionMove':
+                    case 'actionMove':
                         debugger;
                         var opposingTokens = document.querySelectorAll('.token:not([data-team="' + this.team + '"])');
 
@@ -739,7 +739,7 @@ function (dojo, declare) {
 
         onEndManeuver: function(evt) {
             debugger;
-            if (this.checkAction('playActionMoveDone')) {
+            if (this.checkAction('actionMoveDone')) {
                 var playerTokens = document.querySelectorAll('[id^=' + this.playerHero + ']');
 
                 tokensMovement = [];
@@ -748,7 +748,7 @@ function (dojo, declare) {
                     tokensMovement.push(tokenMovementItem);
                 });
 
-                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/playActionMoveDone.html', 
+                this.ajaxcall( '/unmatchedbattle/unmatchedbattle/actionMoveDone.html', 
                     { 'lock': true, 'tokensMovement': JSON.stringify(tokensMovement) }, this, function(result) {} );
             }
         },
@@ -832,9 +832,11 @@ function (dojo, declare) {
             dojo.subscribe( 'moveAmount', this, "notif_moveAmount" );
             dojo.subscribe( 'playAction', this, "notif_playAction" );
             dojo.subscribe( 'schemeDrinkMe', this, "notif_schemeDrinkMe" );
+            dojo.subscribe( 'schemeDrinkMeSelf', this, "notif_schemeDrinkMeSelf" );
             dojo.subscribe( 'schemeEatMe', this, "notif_schemeEatMe" );
 
             this.notifqueue.setIgnoreNotificationCheck( 'performManeuver', (notif) => (notif.args.player_id == this.player_id) );
+            this.notifqueue.setIgnoreNotificationCheck( 'schemeDrinkMe', (notif) => (notif.args.player_id == this.player_id) );
         },  
         
         // TODO: from this point and below, you can write your game notifications handling methods
@@ -919,6 +921,12 @@ function (dojo, declare) {
                 this.addCardsToPlayerHand(Object.values(notif.args.cards));
             }
             
+            this.adjustAliceSize(notif.args.newSize);
+        },
+
+        notif_schemeDrinkMeSelf: function( notif )
+        {
+            this.addCardsToPlayerHand(Object.values(notif.args.cards));            
             this.adjustAliceSize(notif.args.newSize);
         }
    });             

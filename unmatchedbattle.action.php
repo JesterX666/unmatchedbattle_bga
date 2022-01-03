@@ -95,7 +95,7 @@
         self::ajaxResponse( );        
     }  
   
-    public function playActionMoveDone()
+    public function actionMoveDone()
     {
       self::setAjaxMode();
       $tokensMovement = self::getArg( "tokensMovement", AT_json, true );

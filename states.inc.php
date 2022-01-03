@@ -127,7 +127,8 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} must play an action'),
         "type" => "activeplayer",
         "possibleactions" => array( "playActionManeuver", "playActionScheme", "playActionAttack" ),
-        "transitions" => array( "playActionManeuver" => 10, "playActionScheme" => 12, "playActionAttack" => 13 )
+        "transitions" => array( 
+            "playActionManeuver" => 10, "playActionScheme" => 12, "playActionAttack" => 13 )
     ),
 
     10 => array(
@@ -136,16 +137,16 @@ $machinestates = array(
         "descriptionmyturn" => clienttranslate('${you} may play a boost card'),
         "type" => "activeplayer",
         "possibleactions" => array( "playBoostCard", "skipBoostCard" ),
-        "transitions" => array( "playActionMove" => 11 )
+        "transitions" => array( "actionMove" => 11 )
     ),
 
     11 => array(
-        "name" => "playActionMove",
-        "description" => clienttranslate('${actplayer} may move his fighters'),
-        "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces'),
-        "args" => "getPlayActionMoveArgs",
+        "name" => "actionMove",
+        "description" => clienttranslate('${actplayer} may move ${moveWhoOther} up to ${moveAmount} spaces ${moveSpecial}'),
+        "descriptionmyturn" => clienttranslate('${you} may move ${moveWhoSelf} up to ${moveAmount} spaces ${moveSpecial}'),
+        "args" => "getActionMoveArgs",
         "type" => "activeplayer",
-        "possibleactions" => array( "playActionMoveDone" ),
+        "possibleactions" => array( "actionMoveDone" ),
         "transitions" => array( "checkPlayActionDone" => 14 )
     ),
 
@@ -156,12 +157,10 @@ $machinestates = array(
         "action" => "playActionScheme",
         "transitions" => array ( 
             "checkPlayActionDone" => 14,
-            "moveFighter" => 16,
-            "chooseCards" => 17,
-            "chooseZone" => 18,
-            "moveAnyFighters" => 19,
-            "chooseFighter" => 20,
-            "moveFightersNoImpassable" => 21
+            "actionMove" => 11,
+            "chooseCards" => 16,
+            "chooseZone" => 17,
+            "chooseFighter" => 18,
         )
     ),
     
@@ -191,15 +190,6 @@ $machinestates = array(
     ),
 
     16 => array(
-        "name" => "moveFighter",
-        "description" => clienttranslate('${actplayer} may move ${fighterName} up to ${moveAmount} spaces'),
-        "descriptionmyturn" => clienttranslate('${you} may move ${fighterName} up to ${moveAmount} spaces'),
-        "type" => "activeplayer",
-        "possibleactions" => array( "movementDone" ),
-        "transitions" => array( "placeHeroNextPlayer" => 17 )
-    ),
-
-    17 => array(
         "name" => "chooseCards",
         "description" => clienttranslate('${actplayer} must choose ${numberCards} cards'),
         "descriptionmyturn" => clienttranslate('${you} must choose ${numberCards} cards'),
@@ -208,7 +198,7 @@ $machinestates = array(
         "transitions" => array( "placeHeroNextPlayer" => 17 )
     ),
 
-    18 => array(
+    17 => array(
         "name" => "chooseZone",
         "description" => clienttranslate('${actplayer} must choose a zone within ${range} of ${fighterName}'),
         "descriptionmyturn" => clienttranslate('${you} must choose a zone within ${range} of ${fighterName}'),
@@ -217,16 +207,7 @@ $machinestates = array(
         "transitions" => array( "placeHeroNextPlayer" => 17 )
     ),
 
-    19 => array(
-        "name" => "moveAnyFighters",
-        "description" => clienttranslate('${actplayer} may move each fighters up to ${moveAmount} spaces (including enemies)'),
-        "descriptionmyturn" => clienttranslate('${you} may move each fighters up to ${moveAmount} spaces (including enemies)'),
-        "type" => "activeplayer",
-        "possibleactions" => array( "movementAllDone" ),
-        "transitions" => array( "placeHeroNextPlayer" => 17 )
-    ),
-
-    20 => array(
+    18 => array(
         "name" => "chooseFighter",
         "description" => clienttranslate('${actplayer} may choose a fighter up to ${moveAmount} spaces of ${fighterName}'),
         "descriptionmyturn" => clienttranslate('${you} may choose a fighter up to ${moveAmount} spaces of ${fighterName}'),
@@ -235,14 +216,6 @@ $machinestates = array(
         "transitions" => array( "placeHeroNextPlayer" => 17 )
     ),
 
-    21 => array(
-        "name" => "moveFightersNoImpassable",
-        "description" => clienttranslate('${actplayer} may move his fighters up to ${moveAmount} spaces, ignoring opposing fighters'),
-        "descriptionmyturn" => clienttranslate('${you} may move your fighters up to ${moveAmount} spaces, ignoring opposing fighters'),
-        "type" => "activeplayer",
-        "possibleactions" => array( "movementDone" ),
-        "transitions" => array( "placeHeroNextPlayer" => 17 )
-    ),
 
 /*
     Examples:

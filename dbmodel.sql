@@ -48,5 +48,22 @@ CREATE TABLE IF NOT EXISTS `tokens` (
   `token_name` varchar(20) NOT NULL,
   `area_id` int(4) NOT NULL,
   `health` int(2) NOT NULL,
-  PRIMARY KEY (`token_name`, `area_id`)
+  PRIMARY KEY (`token_name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Action in progress and their special arguments
+-- Action Type :
+-- Move : movement
+---- arg1: Any, Own or a list of specific Token_Id separated by commas
+---- arg2: Movement Amount
+---- arg3: Movement Type (Normal, IgnoreEnemies)
+-- Scheme : scheme
+---- arg1: Scheme Card Id
+-- Attack : attack
+CREATE TABLE IF NOT EXISTS `action_in_progress` (
+  `action_type` varchar(10) NOT NULL,
+  `arg1` varchar(50) NOT NULL,
+  `arg2` varchar(20) NULL,
+  `arg3` varchar(20) NULL,
+  PRIMARY KEY (`action_type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

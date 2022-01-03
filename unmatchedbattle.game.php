@@ -211,7 +211,22 @@ class UnmatchedBattle extends Table
         // Informations on existing cards of the game
         $result['cardtypes'] = $this->cardtypes;
 
-        $result['moveAmount'] = $this->getMoveAmount();
+        // If a move is possible, we return the possible characters, the move amount and any special restrictions
+        if ($state['name'] == "actionMove")
+        {
+            $action = $this->getActionInProgress();
+            self::debug("Action : ".json_encode($action));
+
+            if ($action['action_type'] != "Move")
+            {
+                throw new feException("Action is not Move");
+            }
+
+            $result['moveWho'] = $action['arg1'];
+            $result['moveAmount'] = $action['arg2'];
+            $result['moveSpecial'] = $action['arg3'];
+        }
+
         $result['team'] = $player['team'];
 
         self::debug("This->heros : ".json_encode($this->heros));
@@ -470,7 +485,16 @@ class UnmatchedBattle extends Table
     {
         // Get the amount of possible movements
         $player_id = self::getCurrentPlayerId();
-        $moveAmount = $this->getMoveAmount();
+
+        $action = $this->getActionInProgress();
+
+        if ($action['action_type'] != "Move")
+        {
+            throw new feException("Action type is not Move");
+        }
+
+        $moveAmount = $action['arg2'];
+
         self::debug("Move amount : ".$moveAmount);
         $playerTeam = $this->getPlayerTeam($player_id);
         
@@ -616,13 +640,30 @@ class UnmatchedBattle extends Table
 
         self::debug("Hero : ".$hero." played boost card: ".$boostCardId);
 
+        $boostAmount = 0;
+
         if ($boostCardId != 0)
         {
             $card = $this->cards->getCard($boostCardId);
-            $this->cards->moveCard( $boostCardId, 'played_'.$playerId );
+            $this->cards->moveCard( $boostCardId, 'discard_'.$playerId );
+            self::debug("Boost card: ".json_encode($card));
+            $cardDefinition = $this->getCardByInternalId($card['type_arg']);
+            self::debug("Boost card definition: ".json_encode($cardDefinition));
+            $boostAmount = $cardDefinition['boost'];
         }
 
-        $moveAmount = $this->getMoveAmount();
+        $heroMove = 0;
+
+        if ($hero != null)
+        {
+            $heroMove = $this->heros[$hero]['move'];
+        }
+
+        self::debug("Hero move : ".$heroMove." - Boost amount : ".$boostAmount);
+
+        $moveAmount = $boostAmount + $heroMove;
+
+        $this->setActionInProgress("Move", "OwnFighters", $moveAmount, "Normal");
 
         if ($boostCardId == 0)
         {
@@ -642,7 +683,7 @@ class UnmatchedBattle extends Table
             ));
         }        
 
-        $this->gamestate->nextState('playActionMove');
+        $this->gamestate->nextState('actionMove');
     }
 
     function playSchemeCard($schemeCardId)
@@ -650,21 +691,30 @@ class UnmatchedBattle extends Table
         $player_id = self::getActivePlayerId();
         self::debug("Play scheme card: ".$schemeCardId);
         self::checkAction('playActionScheme');
-        $this->cards->moveCard( $schemeCardId, 'played_'.$player_id );
+        $this->cards->moveCard( $schemeCardId, 'discard_'.$player_id );
+        $this->setActionInProgress("Scheme", $schemeCardId, null, null);
         $this->gamestate->nextState('playActionScheme');
     }
 
     function playActionScheme()
     {        
         $player_id = self::getActivePlayerId();
-        $card = $this->cards->getCardOnTop( 'played_'.$player_id );
 
-        if ($card == null)
-            throw new feException("No card on top of the played stack");
+        $action = $this->getActionInProgress();
+        
+        if ($action["action_type"] != "Scheme")
+        {
+            throw new feException("Action type is not Scheme");
+        }
 
-        self::debug("Play scheme card: ".json_encode($card));
+        $card_id = $action['arg1'];
 
-        switch($card['type_arg'])
+        if ($card_id == null)
+            throw new feException("No scheme card found");
+
+        self::debug("Play scheme card: ".$card_id);
+
+        switch($card_id)
         {
             case 105: // Eat Me
                 $this->schemeEatMe();
@@ -693,14 +743,14 @@ class UnmatchedBattle extends Table
             case 403: // Riches Beyond Compare
                 $this->schemeRichesBeyondCompare();
                 break;            
-        }
+        }        
     }
 
     function schemeEatMe()
     {
         $player_id = self::getActivePlayerId();
         $newSize = $this->aliceChangeSize(null);
-        $newSizeLabel = $this->aliceSizeLabel($newSize);
+        $newSizeLabel = $this->getAliceSizeLabel($newSize);
 
         self::notifyAllPlayers( "schemeEatMe", clienttranslate( '${player_name} played the Eat Me scheme card and became ${newSizeLabel}.' ), array(
             'player_id' => $player_id,
@@ -719,7 +769,7 @@ class UnmatchedBattle extends Table
         $cardsNames = $this->getCardsNames($cards);
         
         $newSize = $this->aliceChangeSize(null);
-        $newSizeLabel = $this->aliceSizeLabel($newSize);
+        $newSizeLabel = $this->getAliceSizeLabel($newSize);
         
         self::notifyPlayer( $player_id, "schemeDrinkMe", clienttranslate( 'You played the Drink Me scheme card.  You received: ${cardsNames} and became ${newSizeLabel}.' ), array(
             'player_id' => $player_id,
@@ -826,39 +876,63 @@ class UnmatchedBattle extends Table
         $this->gamestate->nextState('checkPlayActionDone');
     }
 
-    function getPlayActionMoveArgs()
-    {        
+    function getMoveFighterArgs()
+    {
+        $player_id = self::getActivePlayerId();
+        $card = $this->cards->getCardOnTop( 'played_'.$player_id );
+
+        self::debug("getMoveFighterArgs Played Card: ".json_encode($card));
+
+        if ($card["type_arg"] == 105) // Alice Scheme : Eat Me
+        {
+            $moveAmount = 3;
+            $fighterName = clienttranslate("Alice");
+        }
+
         return array(
-            'moveAmount' => $this->getMoveAmount()
+            'moveAmount' => $moveAmount,
+            'fighterName' => $fighterName,
         );
     }
 
-    function getMoveAmount()
+    function getActionMoveArgs()
     {
-        $playerId = self::getCurrentPlayerId();
+        $action = $this->getActionInProgress();
 
-        $card = $this->cards->getCardOnTop( 'played_'.$playerId );
-        $boostAmount = 0;
-
-        if ($card != null)
+        if ($action["action_type"] != "Move")
         {
-            self::debug("getMoveAmount - Boost card: ".json_encode($card));
-            $cardDefinition = $this->getCardByInternalId($card['type_arg']);
-            self::debug("getMoveAmount - Boost card definition: ".json_encode($cardDefinition));
-            $boostAmount = $cardDefinition['boost'];
+            throw new feException("Action is not Move");
         }
 
-        $hero = $this->getPlayerById($playerId)['hero'];
-        $heroMove = 0;
-
-        if ($hero != null)
+        switch ($action["arg1"])
         {
-            $heroMove = $this->heros[$hero]['move'];
+            case "Any":
+                $moveWhoSelf = clienttranslate("any fighters");
+                $moveWhoOther = clienttranslate("any fighters");
+                break;
+            case "Own":
+                $moveWhoSelf = clienttranslate("your fighters");
+                $moveWhoOther = clienttranslate("his fighters");
+                break;
+            default:
+                $moveWhoSelf = clienttranslate($action["arg1"]);
+                $moveWhoOther = clienttranslate($action["arg1"]);
+                break;
         }
 
-        self::debug("Hero move : ".$heroMove." - Boost amount : ".$boostAmount);
+        switch ($action["arg3"])
+        {
+            default:
+                $moveSpecial = "";
+                break;
+        }
 
-        return $boostAmount + $heroMove;
+        return array(
+            'moveWhoSelf' => $moveWhoSelf,
+            'moveWhoOther' => $moveWhoOther,
+            'moveAmount' => $action["arg2"],
+            'moveSpecial' => $moveSpecial
+        );
     }
 
     function getZonesSameColors($colors, $excludedZones)
@@ -1199,19 +1273,13 @@ class UnmatchedBattle extends Table
         if ($separator !== false)
         {
             $hero = substr($token_name, 0, $separator);
-            self::debug("Sidekick for Hero: ".$hero);
 
             $sidekick = array_filter($this->heros[$hero]['sidekicks'], function($sidekick) use ($hero)                 
             {
-                self::debug("Sidekick internal_id: ".$sidekick['internal_id']);
                 return substr($sidekick['internal_id'], 0, strpos($sidekick['internal_id'], '_')) == $hero;
             });
 
-            self::debug("Sidekick: ".json_encode($sidekick));
-
             $tokenType = $this->heros[$hero]['sidekicks'][array_key_first($sidekick)]['name'];
-
-            self::debug("Sidekick: ".$tokenType);
         }
         else
         {
@@ -1245,7 +1313,6 @@ class UnmatchedBattle extends Table
             foreach($playerTokens as $token)
             {
                 $fighterName = $this->getFighterNameFromTokenId($token['token_name']);
-                self::debug("Fighter name : ".$fighterName);
                 array_push($tokensStatus, array('token_id' => $fighterName, 'health' => $token['health']));
             }
 
@@ -1397,9 +1464,27 @@ class UnmatchedBattle extends Table
         return $newSize;
     }
 
-    function aliceSizeLabel($size)
+    function getAliceSizeLabel($size)
     {
         return ($size == "B") ? clienttranslate("Big") : clienttranslate("Small");
+    }
+
+    function setActionInProgress($action, $arg1, $arg2, $arg3)
+    {
+        $player_id = self::getActivePlayerId();
+        $sql = "DELETE FROM action_in_progress";
+        self::DbQuery( $sql );
+
+        $sql = "INSERT INTO action_in_progress SET action_type = '".$action."', arg1 = '".$arg1."', arg2 = '".$arg2."', arg3 = '".$arg3."'";
+        self::DbQuery( $sql );
+    }
+
+    function getActionInProgress()
+    {
+        $sql = "SELECT action_type, arg1, arg2, arg3 FROM action_in_progress";
+        $action = self::getCollectionFromDb( $sql );
+        self::debug("Action: ".json_encode($action));
+        return array_pop($action);
     }
     
 //////////////////////////////////////////////////////////////////////////////
