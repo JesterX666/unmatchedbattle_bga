@@ -164,14 +164,12 @@
 .aliceSize {
     width: 45px;
     height: 88px;
-    background-repeat: no-repeat;
-    background-size: contain;
 }
 
 .aliceSizeBig {
-    background: url('img/AliceSizeReduced.png') 45 0;
+    background: url('img/AliceSizeReduced.png') 45px 0px;
 }
 
 .aliceSizeSmall {
-    background: url('img/AliceSizeReduced.png') 0 0;
+    background: url('img/AliceSizeReduced.png') 0px 0px;
 }

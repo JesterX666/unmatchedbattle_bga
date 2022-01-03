@@ -321,21 +321,10 @@ class UnmatchedBattle extends Table
         self::checkAction('chooseSize');
         
         $player_id = self::getActivePlayerId();
+        $sizeValue = ($size == "sizeBig") ? "B" : "S";
 
-        if ($size == "sizeBig")
-        {
-            $sizeLabel = clienttranslate("Big");
-            $sizeValue = "B";
-        }
-        else
-        {
-            $sizeLabel = clienttranslate("Small");
-            $sizeValue = "S";
-        }
-
-        // Set the choosen hero in the database
-        $sql = "UPDATE player SET alice_size = '".$sizeValue."' WHERE player_id = ".$player_id;
-        self::DbQuery( $sql );
+        $this->aliceChangeSize($sizeValue);
+        $sizeLabel = $this->getAliceSizeLabel($sizeValue);
 
         // Notify all players about the hero chosen and the remaining available heroes
         self::notifyAllPlayers( "sizeSelected", clienttranslate( '${player_name} choosed Alice to be ${sizeLabel}' ), array(
@@ -709,10 +698,15 @@ class UnmatchedBattle extends Table
 
     function schemeEatMe()
     {
-        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
-            'player_id' => $playerId,
+        $player_id = self::getActivePlayerId();
+        $newSize = $this->aliceChangeSize(null);
+        $newSizeLabel = $this->aliceSizeLabel($newSize);
+
+        self::notifyAllPlayers( "schemeEatMe", clienttranslate( '${player_name} played the Eat Me scheme card and became ${newSizeLabel}.' ), array(
+            'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+            'newSize' => $newSize,
+            'newSizeLabel' => $newSizeLabel
         ));
 
         $this->gamestate->nextState('moveFighter');
@@ -720,10 +714,27 @@ class UnmatchedBattle extends Table
     
     function schemeDrinkMe()
     {
-        self::notifyAllPlayers( "moveAmount", clienttranslate( '${player_name} played the Eat Me scheme card' ), array(
-            'player_id' => $playerId,
+        $player_id = self::getActivePlayerId();
+        $cards = $this->drawCards($player_id, 2);
+        $cardsNames = $this->getCardsNames($cards);
+        
+        $newSize = $this->aliceChangeSize(null);
+        $newSizeLabel = $this->aliceSizeLabel($newSize);
+        
+        self::notifyPlayer( $player_id, "schemeDrinkMe", clienttranslate( 'You played the Drink Me scheme card.  You received: ${cardsNames} and became ${newSizeLabel}.' ), array(
+            'player_id' => $player_id,
+            'cards' => $cards,
+            'cardsNames' => implode(", ", $cardsNames),
+            'newSize' => $newSize,
+            'newSizeLabel' => $newSizeLabel
+        ));
+                
+        self::notifyAllPlayers( "schemeDrinkMe", clienttranslate( '${player_name} played the Drink Me scheme card, drew ${cardDrawn} cards and became ${newSizeLabel}.' ), array(
+            'player_id' => $player_id,
             'player_name' => self::getActivePlayerName(),
-            'cardName' => $this->getCardByInternalId($card['type_arg'])['name']
+            'newSizeLabel' => $newSizeLabel,
+            'newSize' => $newSize,
+            'cardDrawn' => count($cards)
         ));
 
         $this->gamestate->nextState('checkPlayActionDone');
@@ -798,28 +809,11 @@ class UnmatchedBattle extends Table
     function schemeRichesBeyondCompare()
     {
         $player_id = self::getActivePlayerId();
-        $hero = $this->getPlayerById($player_id)['hero'];
-
-        // draw 3 card
-        $cards = array();
-        $cardsPick = $this->cards->pickCards(3, 'deck_'.$hero, $player_id);
-        
-        $cardsNames = array();
-        foreach($cardsPick as $card)
-        {
-            array_push($cards, array ("id" => $card['id'], "internal_id" => $card['type_arg']));
-
-            $cardName = $this->getCardByInternalId($card['type_arg'])['name'];
-
-            array_push($cardsNames, $cardName);
-            self::debug("Riches Beyond Compare draw card: ".json_encode($card));
-        }
-                
-        // TODO APPLY FATIGUE DAMAGE
+        $cards = $this->drawCards($player_id, 3);
+        $cardsNames = $this->getCardsNames($cards);
         
         self::notifyPlayer( $player_id, "receiveCards", clienttranslate( 'You played the Riches Beyond Compare scheme card.  You received: ${cardsNames}' ), array(
             'player_id' => $player_id,
-            'player_name' => self::getActivePlayerName(),
             'cards' => $cards,
             'cardsNames' => implode(", ", $cardsNames)
         ));
@@ -1354,6 +1348,58 @@ class UnmatchedBattle extends Table
 
         // Shuffle the deck
         $this->cards->shuffle( 'deck_'.$hero );
+    }
+    
+    function drawCards($player_id, $cardCount)
+    {
+        $hero = $this->getPlayerById($player_id)['hero'];
+        $cards = array();
+        $cardsPick = $this->cards->pickCards($cardCount, 'deck_'.$hero, $player_id);
+        
+        foreach($cardsPick as $card)
+        {
+            array_push($cards, array ("id" => $card['id'], "internal_id" => $card['type_arg']));
+        }
+                                        
+        // TODO APPLY FATIGUE DAMAGE
+
+        return $cards;
+    }
+
+    function getCardsNames($cards)
+    {
+        self::debug("Cards: ".json_encode($cards));
+
+        $cardsNames = array();
+        foreach($cards as $card)
+        {
+            $cardName = $this->getCardByInternalId($card['internal_id'])['name'];
+            array_push($cardsNames, $cardName);
+        }
+
+        return $cardsNames;
+    }
+
+    function aliceChangeSize($newSize)
+    {
+        $player_id = self::getActivePlayerId();
+        
+        if ($newSize == null)
+        {
+            $sql = "SELECT alice_size FROM player WHERE player_id = ".$player_id;
+            $currentSize = self::getUniqueValueFromDB( $sql );
+            $newSize = ($currentSize == "S") ? "B" : "S";
+        }    
+        
+        $sql = "UPDATE player SET alice_size = '".$newSize."' WHERE player_id = ".$player_id;
+        self::DbQuery( $sql );
+
+        return $newSize;
+    }
+
+    function aliceSizeLabel($size)
+    {
+        return ($size == "B") ? clienttranslate("Big") : clienttranslate("Small");
     }
     
 //////////////////////////////////////////////////////////////////////////////

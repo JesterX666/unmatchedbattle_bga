@@ -224,12 +224,13 @@ function (dojo, declare) {
                     blockFighters += blockFighter;
                 });
                 
-                var aliceSizeClass = "";
+                var blockAliceSize = "";
                 if (playerPanel.hasOwnProperty('alice_size')) {
                     aliceSizeClass = playerPanel['alice_size'] == 'S' ? 'aliceSizeSmall' : 'aliceSizeBig';
+                    blockAliceSize = this.format_block('jstpl_player_board_aliceSize', { 'aliceSizeClass': aliceSizeClass });
                 }
             
-                var player_board = this.format_block('jstpl_player_board', {'blockFighters': blockFighters, 'aliceSize': aliceSizeClass});
+                var player_board = this.format_block('jstpl_player_board', {'blockFighters': blockFighters, 'blockAliceSize': blockAliceSize});
             
                 dojo.place(player_board, player_board_container);
             }
@@ -323,6 +324,15 @@ function (dojo, declare) {
 
         getScaleTransformForToken(scaleSlider){
             return 'scale(' + (scaleSlider.value) / 100 + ')';
+        },
+
+        adjustAliceSize(newSize){
+            var aliceSize = document.querySelector('.aliceSize');
+
+            aliceSize.classList.remove('aliceSizeSmall');
+            aliceSize.classList.remove('aliceSizeBig');
+
+            (newSize == 'S') ? aliceSize.classList.add('aliceSizeSmall') : aliceSize.classList.add('aliceSizeBig');
         },
 
         resetActionButtonsAction: function () {
@@ -821,6 +831,8 @@ function (dojo, declare) {
             dojo.subscribe( 'receiveCards', this, "notif_receiveCards" );
             dojo.subscribe( 'moveAmount', this, "notif_moveAmount" );
             dojo.subscribe( 'playAction', this, "notif_playAction" );
+            dojo.subscribe( 'schemeDrinkMe', this, "notif_schemeDrinkMe" );
+            dojo.subscribe( 'schemeEatMe', this, "notif_schemeEatMe" );
 
             this.notifqueue.setIgnoreNotificationCheck( 'performManeuver', (notif) => (notif.args.player_id == this.player_id) );
         },  
@@ -893,6 +905,21 @@ function (dojo, declare) {
             // Nothing really to do here
             console.log( 'notif_playAction' );
             console.log( notif );
+        },
+
+        notif_schemeEatMe: function( notif )
+        {
+            debugger;
+            this.adjustAliceSize(notif.args.newSize);
+        },
+
+        notif_schemeDrinkMe: function( notif )
+        {
+            if (notif.args.player_id == this.player_id) {
+                this.addCardsToPlayerHand(Object.values(notif.args.cards));
+            }
+            
+            this.adjustAliceSize(notif.args.newSize);
         }
    });             
 });

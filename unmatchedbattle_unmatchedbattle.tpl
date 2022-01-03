@@ -74,7 +74,8 @@
 var jstpl_sidekickPoolItem = '<div id="${sidekickPoolItemId}" class="sidekickPoolItem"></div>';
 var jstpl_token = '<div id="${internalId}" class="token ${tokenType}" draggable="true" data-team="${team}"></div>';
 
-var jstpl_player_board = '<div>${blockFighters}<div class="aliceSize ${aliceSize}"></div></div>';
+var jstpl_player_board = '<div>${blockFighters}${blockAliceSize}</div>';
+var jstpl_player_board_aliceSize = '<div class="aliceSize ${aliceSizeClass}"></div>';
 var jstpl_player_board_fighter = '<div>${fighterName}<span id="health" class="fighterHealth">${fighterHealth}</span></div>';
 
 /*
