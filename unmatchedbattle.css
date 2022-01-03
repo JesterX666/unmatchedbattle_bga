@@ -158,6 +158,20 @@
 }
 
 .fighterHealth {
-    left: 0px;
-    
+    padding-left: 10px;
+}
+
+.aliceSize {
+    width: 45px;
+    height: 88px;
+    background-repeat: no-repeat;
+    background-size: contain;
+}
+
+.aliceSizeBig {
+    background: url('img/AliceSizeReduced.png') 45 0;
+}
+
+.aliceSizeSmall {
+    background: url('img/AliceSizeReduced.png') 0 0;
 }
